@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AnimeXOsource_Owais Player</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    #player-wrapper { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #000; }
+    video { width: 100%; height: 100%; object-fit: contain; }
+    
+    /* Overlay Loader */
+    #loader { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; z-index: 10; transition: opacity 0.3s ease; }
+    .spinner { width: 44px; height: 44px; border: 3px solid rgba(244, 63, 94, 0.2); border-top-color: #f43f5e; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1rem; }
+    .loading-text { color: #9494a6; font-size: 0.85rem; font-family: monospace; letter-spacing: 0.05em; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Skip Intro / Outro Buttons */
+    .skip-btn {
+      position: absolute;
+      bottom: 70px;
+      right: 24px;
+      z-index: 20;
+      background: rgba(244, 63, 94, 0.9);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.65rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: none;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4);
+      transition: all 0.15s ease;
+    }
+    .skip-btn:hover { background: #e11d48; transform: scale(1.05); }
+
+    /* Error Overlay */
+    #error-overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(9, 9, 11, 0.95);
+      color: #fff;
+      z-index: 30;
+      padding: 2rem;
+      text-align: center;
+    }
+    #error-overlay h3 { color: #f43f5e; margin-bottom: 0.5rem; font-size: 1.1rem; }
+    #error-overlay p { color: #a1a1aa; font-size: 0.85rem; margin-bottom: 1.25rem; }
+    #retry-btn {
+      background: #f43f5e;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1.25rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    /* Server Failover Badge */
+    #server-badge {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-family: monospace;
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; }
+  </style>
+</head>
+<body>
+  <div id="player-wrapper">
+    <div id="loader">
+      <div class="spinner"></div>
+      <div class="loading-text" id="loader-msg">CONNECTING TO SORA EDGE...</div>
+    </div>
+
+    <div id="server-badge">
+      <span class="badge-dot"></span>
+      <span id="active-server-name">HD-2 [1080P]</span>
+    </div>
+
+    <video id="video-el" controls playsinline crossorigin="anonymous"></video>
+
+    <button id="skip-btn" class="skip-btn">Skip Intro &rarr;</button>
+
+    <div id="error-overlay">
+      <h3>Stream Connection Notice</h3>
+      <p id="error-msg">Failed to mount stream.</p>
+      <button id="retry-btn" onclick="initPlayback()">Retry Connection</button>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    // Determine slug and episode from path
+    // Formats: /embed/ani/:id/:ep, /embed/mal/:id/:ep, /embed/:slug/:ep
+    let slug = 'one-piece-xamk74';
+    let ep = 1;
+    let catalogType = 'slug';
+
+    if (pathParts[1] === 'ani' || pathParts[1] === 'mal') {
+      catalogType = pathParts[1];
+      slug = pathParts[2] || slug;
+      ep = parseInt(pathParts[3] || '1', 10);
+    } else if (pathParts[1]) {
+      slug = pathParts[1];
+      ep = parseInt(pathParts[2] || '1', 10);
+    }
+
+    const preferredTrack = urlParams.get('track') || 'sub';
+
+    const video = document.getElementById('video-el');
+    const loader = document.getElementById('loader');
+    const loaderMsg = document.getElementById('loader-msg');
+    const skipBtn = document.getElementById('skip-btn');
+    const errorOverlay = document.getElementById('error-overlay');
+    const errorMsg = document.getElementById('error-msg');
+    const activeServerName = document.getElementById('active-server-name');
+
+    let hls = null;
+    let streamMeta = null;
+    let availableServers = [];
+    let currentServerIndex = 0;
+
+    function postEvent(type, data = {}) {
+      try {
+        window.parent.postMessage({ source: 'AnimeXOsource_Owais', type, ...data }, '*');
+      } catch (e) {}
+    }
+
+    async function fetchServers() {
+      // If numeric ani ID
+      let fetchUrl = `/servers/${encodeURIComponent(slug)}/${ep}`;
+      if (catalogType === 'ani' && !isNaN(slug)) {
+        fetchUrl = `/servers/id/${ep}?anilist_id=${slug}`;
+      }
+      try {
+        const r = await fetch(fetchUrl);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+        const list = preferredTrack === 'dub' ? (data.dub || []) : (data.sub || []);
+        return list.length > 0 ? list : (data.sub || data.dub || []);
+      } catch (e) {
+        // Fallback to direct stream endpoint
+        return null;
+      }
+    }
+
+    async function resolveActiveStream(server) {
+      if (server && server.dataLink) {
+        const res = await fetch(`/stream/from-link?link=${encodeURIComponent(server.dataLink)}`);
+        if (!res.ok) throw new Error(`Stream resolve failed: ${res.status}`);
+        return await res.json();
+      } else {
+        // Use direct adapter
+        const res = await fetch(`/api/stream/${encodeURIComponent(slug)}/${ep}`);
+        if (!res.ok) throw new Error(`Stream adapter failed: ${res.status}`);
+        const data = await res.json();
+        return {
+          url: data.sources[0]?.url,
+          subtitles: data.subtitles || [],
+          intro_chapter: data.intro_chapter,
+          outro_chapter: data.outro_chapter,
+          serverName: data.sources[0]?.server || 'HD-2'
+        };
+      }
+    }
+
+    async function initPlayback() {
+      errorOverlay.style.display = 'none';
+      loader.style.display = 'flex';
+      loaderMsg.innerText = 'DISCOVERING PLAYBACK NODES...';
+
+      try {
+        availableServers = await fetchServers() || [];
+        currentServerIndex = 0;
+        await mountCurrentServer();
+      } catch (err) {
+        showError('Unable to resolve playback nodes. Please try again.');
+      }
+    }
+
+    async function mountCurrentServer() {
+      const server = availableServers[currentServerIndex] || null;
+      const sName = server ? server.serverName : 'HD-2 EDGE';
+      activeServerName.innerText = `${sName} [1080P]`;
+      loaderMsg.innerText = `RESOLVING HLS VIA ${sName}...`;
+
+      try {
+        streamMeta = await resolveActiveStream(server);
+        loadHlsSource(streamMeta.url, streamMeta.subtitles);
+      } catch (err) {
+        console.warn(`Server ${sName} failed:`, err);
+        // Cascading 3-engine failover
+        if (currentServerIndex + 1 < availableServers.length) {
+          currentServerIndex++;
+          loaderMsg.innerText = 'PRIMARY NODE TIMEOUT. FAILING OVER TO BACKUP...';
+          setTimeout(mountCurrentServer, 500);
+        } else {
+          showError('All streaming clusters currently busy. Please retry shortly.');
+        }
+      }
+    }
+
+    function loadHlsSource(m3u8Url, subtitles = []) {
+      if (hls) {
+        hls.destroy();
+        hls = null;
+      }
+
+      // Clear subtitles
+      while (video.firstChild) video.removeChild(video.firstChild);
+
+      // Add subtitle tracks
+      (subtitles || []).forEach(sub => {
+        const track = document.createElement('track');
+        track.kind = 'subtitles';
+        track.label = sub.language || 'Subtitles';
+        track.srclang = (sub.language || 'en').substring(0, 2).toLowerCase();
+        track.src = sub.url;
+        if (sub.default) track.default = true;
+        video.appendChild(track);
+      });
+
+      if (Hls.isSupported()) {
+        hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+          backBufferLength: 90
+        });
+
+        hls.loadSource(m3u8Url);
+        hls.attachMedia(video);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          loader.style.display = 'none';
+          postEvent('ready', { server: activeServerName.innerText });
+          video.play().catch(() => {});
+        });
+
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          if (data.fatal) {
+            console.warn('Fatal HLS error, attempting recovery:', data.details);
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                hls.recoverMediaError();
+                break;
+              default:
+                if (currentServerIndex + 1 < availableServers.length) {
+                  currentServerIndex++;
+                  mountCurrentServer();
+                } else {
+                  showError('Media decode failed. Please retry.');
+                }
+                break;
+            }
+          }
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = m3u8Url;
+        video.addEventListener('loadedmetadata', () => {
+          loader.style.display = 'none';
+          video.play().catch(() => {});
+        });
+      } else {
+        showError('HLS playback is not supported in this browser.');
+      }
+    }
+
+    function showError(msg) {
+      loader.style.display = 'none';
+      errorMsg.innerText = msg;
+      errorOverlay.style.display = 'flex';
+      postEvent('error', { message: msg });
+    }
+
+    // Skip Intro / Outro Chapter Monitor
+    video.addEventListener('timeupdate', () => {
+      const cur = video.currentTime;
+      postEvent('timeupdate', { currentTime: cur, duration: video.duration });
+
+      if (streamMeta && streamMeta.intro_chapter) {
+        const { start, end } = streamMeta.intro_chapter;
+        if (cur >= start && cur <= end) {
+          skipBtn.innerText = 'Skip Intro \u2192';
+          skipBtn.style.display = 'block';
+          skipBtn.onclick = () => { video.currentTime = end + 1; };
+          return;
+        }
+      }
+
+      if (streamMeta && streamMeta.outro_chapter) {
+        const { start, end } = streamMeta.outro_chapter;
+        if (cur >= start && cur <= end) {
+          skipBtn.innerText = 'Skip Credits \u2192';
+          skipBtn.style.display = 'block';
+          skipBtn.onclick = () => { video.currentTime = end + 1; };
+          return;
+        }
+      }
+
+      skipBtn.style.display = 'none';
+    });
+
+    video.addEventListener('play', () => postEvent('play'));
+    video.addEventListener('pause', () => postEvent('pause'));
+    video.addEventListener('ended', () => postEvent('ended'));
+
+    window.addEventListener('DOMContentLoaded', initPlayback);
+  </script>
+</body>
+</html>
