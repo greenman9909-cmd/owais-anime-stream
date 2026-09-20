@@ -153,6 +153,50 @@ code, pre, .mono {
   border: 1px solid var(--border);
 }
 
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lang-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.lang-btn {
+  background: none;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 0.1rem 0.25rem;
+  border-radius: var(--radius-xs);
+  transition: color var(--duration) var(--ease);
+}
+
+.lang-btn:hover {
+  color: var(--text-1);
+}
+
+.lang-btn.active {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.lang-divider {
+  color: var(--border-hover);
+  font-size: 0.7rem;
+}
+
 .status-dot {
   width: 8px;
   height: 8px;

@@ -7,11 +7,14 @@ from reanime import shield
 
 
 def test_root_web_platform():
-    """Verify root / serves the AnimeXOsource_Owais web platform."""
+    """Verify root / serves the AnimeXOsource_Owais web platform defaulting to Spanish."""
     with TestClient(app) as client:
         res = client.get("/")
         assert res.status_code == 200
         assert "AnimeXOsource_Owais" in res.text
+        assert 'lang="es"' in res.text
+        assert "Embeds de Video Anime" in res.text
+        assert "btn-lang-es" in res.text
         assert "text/html" in res.headers.get("content-type", "")
 
 
