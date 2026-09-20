@@ -213,20 +213,41 @@ async def _resolve_via_builtin(slug_or_id: str, episode: int, lang: str = "sub",
         if isinstance(embed_resp, Exception) or embed_resp.status_code != 200:
             raise ResolverError(f"Failed to fetch embed page from {data_link}")
 
-        # 3. Decrypt token using Node WASM bridge
-        decrypted = await decrypt_embed_html(embed_resp.content)
-        decrypted["embed"] = data_link
+        # 3. Decrypt token using Node WASM bridge (with automatic direct embed fallback if datacenter IP is blocked)
+        try:
+            decrypted = await decrypt_embed_html(embed_resp.content)
+            decrypted["embed"] = data_link
+            normalized = normalize_upstream_response(decrypted)
 
-        normalized = normalize_upstream_response(decrypted)
-
-        # Attach matching server embed links to each source
-        for src in normalized.get("sources", []):
-            srv_name = src.get("server")
-            matched = next((ts for ts in target_servers if ts.get("serverName") == srv_name and ts.get("dataLink")), None)
-            if matched:
-                src["embed"] = matched["dataLink"]
-            elif not src.get("embed"):
-                src["embed"] = data_link
+            # Attach matching server embed links to each source
+            for src in normalized.get("sources", []):
+                srv_name = src.get("server")
+                matched = next((ts for ts in target_servers if ts.get("serverName") == srv_name and ts.get("dataLink")), None)
+                if matched:
+                    src["embed"] = matched["dataLink"]
+                elif not src.get("embed"):
+                    src["embed"] = data_link
+        except Exception as decrypt_err:
+            logger.warning(
+                "Upstream WASM/token decryption blocked by CDN (%s). Gracefully falling back to direct server embed links.",
+                decrypt_err,
+            )
+            fallback_sources = []
+            for i, s in enumerate(target_servers[:3]):
+                srv_name = s.get("serverName") or f"HD-{i+1}"
+                dl = s.get("dataLink") or data_link
+                fallback_sources.append({
+                    "server": srv_name,
+                    "url": dl,
+                    "embed": dl,
+                    "type": "embed",
+                    "priority": i + 1,
+                    "signed": shield.sign(dl),
+                })
+            normalized = {
+                "sources": fallback_sources,
+                "subtitles": [],
+            }
 
         if skip_data:
             normalized["skip"] = skip_data

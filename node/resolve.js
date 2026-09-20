@@ -15,6 +15,15 @@ async function fetchJson(url, headers = {}) {
     headers: {
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "Accept": "application/json, text/plain, */*",
+      "Accept-Language": "en-US,en;q=0.9",
+      "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+      "Sec-Ch-Ua-Mobile": "?0",
+      "Sec-Ch-Ua-Platform": '"Windows"',
+      "Sec-Fetch-Dest": "empty",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Site": "same-origin",
+      "X-Requested-With": "XMLHttpRequest",
       ...headers,
     },
   });
@@ -115,7 +124,8 @@ async function main() {
   if (!token) throw new Error("Token field missing from embed data");
 
   const tokData = await fetchJson(`https://flixcloud.cc/api/m3u8/${token}`, {
-    Referer: "https://reanime.to/",
+    Referer: "https://flixcloud.cc/",
+    Origin: "https://flixcloud.cc",
   });
   const vidKey = sha256hex(token + "vid").substring(0, 10);
   const keyKey = sha256hex(token + "key").substring(0, 10);

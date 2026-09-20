@@ -59,3 +59,57 @@ def test_normalize_empty_sources_raises_error():
     empty_payload = {"sources": []}
     with pytest.raises(ResolverError, match="no stream sources"):
         normalize_upstream_response(empty_payload)
+
+
+@pytest.mark.asyncio
+async def test_builtin_fallback_when_decryption_fails(monkeypatch):
+    """Verify resolver falls back to direct server embed links if WASM token decryption fails (HTTP 403 on datacenter IP)."""
+    import httpx
+    from reanime import resolver
+
+    # Mock anilist search to return aid 21
+    async def mock_search(*args, **kwargs):
+        return {"results": [{"anilistId": 21}]}
+
+    monkeypatch.setattr("reanime.anilist.search_anime", mock_search)
+
+    # Mock flix response with servers and dataLink
+    class MockFlixResponse:
+        status_code = 200
+        def json(self):
+            return {
+                "servers": [
+                    {"serverName": "HD-2", "dataType": "sub", "dataLink": "https://flixcloud.cc/e/test1234"},
+                    {"serverName": "HD-1", "dataType": "sub", "dataLink": "https://flixcloud.cc/e/test5678"}
+                ]
+            }
+
+    class MockEmbedResponse:
+        status_code = 200
+        content = b"<html>mock</html>"
+
+    original_get = httpx.AsyncClient.get
+
+    async def mock_get(self, url, *args, **kwargs):
+        url_str = str(url)
+        if "api/flix" in url_str:
+            return MockFlixResponse()
+        if "flixcloud.cc/e" in url_str:
+            return MockEmbedResponse()
+        return await original_get(self, url, *args, **kwargs)
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", mock_get)
+
+    # Force decrypt_embed_html to fail with HTTP 403 simulation
+    async def mock_decrypt_fail(content):
+        raise resolver.ResolverError("CDN token resolution error: HTTP 403 from https://flixcloud.cc/api/m3u8/token")
+
+    monkeypatch.setattr(resolver, "decrypt_embed_html", mock_decrypt_fail)
+
+    result = await resolver.resolve("21", 1, "sub")
+    assert "sources" in result
+    assert len(result["sources"]) == 2
+    assert result["sources"][0]["type"] == "embed"
+    assert result["sources"][0]["embed"] == "https://flixcloud.cc/e/test1234"
+    assert result["sources"][1]["embed"] == "https://flixcloud.cc/e/test5678"
+

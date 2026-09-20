@@ -325,13 +325,15 @@
 
   function loadStreamSource(source) {
     const m3u8Url = typeof source === 'string' ? source : (source.signed || source.url);
-    const embedUrl = typeof source === 'object' ? source.embed : null;
+    const embedUrl = typeof source === 'object' ? (source.embed || source.url) : null;
 
-    // If stream is from FlixCloud/RundownCDN or embedUrl is provided, mount secure iframe
+    // Check if source is a direct embed frame or from FlixCloud/RundownCDN or not a direct .m3u8 file
+    const isEmbedType = (source && source.type === 'embed');
     const isFlixCloud = m3u8Url && (m3u8Url.includes('flixcloud') || m3u8Url.includes('rundowncdn'));
+    const isNotDirectM3u8 = m3u8Url && !m3u8Url.includes('.m3u8') && !m3u8Url.includes('/hls/');
 
-    if (embedUrl && isFlixCloud) {
-      mountEmbedFrame(embedUrl);
+    if (isEmbedType || (embedUrl && isFlixCloud) || (embedUrl && isNotDirectM3u8)) {
+      mountEmbedFrame(embedUrl || m3u8Url);
       return;
     }
 
