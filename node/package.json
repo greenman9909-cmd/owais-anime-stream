@@ -1,0 +1,15 @@
+{
+  "name": "reanime-resolver",
+  "version": "1.0.0",
+  "description": "WASM loader and AES-256-CBC token resolver for CDN playback streams",
+  "type": "module",
+  "main": "resolve.js",
+  "scripts": {
+    "test": "node resolve.js --help"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": ["anime", "hls", "wasm", "reanime", "flixcloud"],
+  "license": "MIT"
+}

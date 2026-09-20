@@ -1,4 +1,6 @@
-fastapi
-uvicorn
-httpx[http2]
-pycryptodome
+fastapi>=0.110.0
+uvicorn>=0.29.0
+httpx[http2]>=0.27.0
+pycryptodome>=3.20.0
+pydantic>=2.6.0
+websockets>=12.0
