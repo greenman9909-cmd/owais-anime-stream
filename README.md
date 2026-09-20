@@ -1,14 +1,9 @@
 # AnimeXOsource_Owais
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Node.js 20+](https://img.shields.io/badge/node-20+-green.svg)](https://nodejs.org/)
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
-A high-performance, open-source anime video embed and playback infrastructure platform modeled after **[Anixo](https://anixo.buzz/)**. Built with a modern **FastAPI** backend, lightweight **Node.js WebAssembly (WASM) token decryption bridge**, and an ad-free, interactive **HLS.js player playground** with automatic 3-engine failover, frame-accurate subtitles, and skip intro/outro markers.
-
-Powers the web application at **[https://owais-anime-stream.onrender.com/](https://owais-anime-stream.onrender.com/)**.
-
-> **Unified Full-Stack Deployment**: Both the complete web platform console and the high-speed backend API are served from a single unified service, allowing instant 1-click deployment on Render's free tier with zero extra costs or complex build steps.
+A high-speed, open-source anime video embed and playback infrastructure platform modeled after **[Anixo](https://anixo.buzz/)**. Built with a unified **FastAPI** backend, ad-free **HLS.js 1.5.15 standalone embed player** featuring automated 3-server failover (`HD-2` &rarr; `HD-1` &rarr; `SD-1`), frame-accurate WebVTT subtitle synchronization with **±10s offset calibration**, interactive **AniSkip intro/outro triggers**, HMAC-SHA256 origin shielding, and real-time edge cluster telemetry.
 
 ---
 
@@ -19,10 +14,10 @@ Powers the web application at **[https://owais-anime-stream.onrender.com/](https
 - [Web Platform & Studio Console](#web-platform--studio-console)
 - [Embed Player Engine](#embed-player-engine)
 - [Developer Integration](#developer-integration)
-- [API Endpoints Reference](#api-endpoints-reference)
-- [Local Setup](#local-setup)
+- [API Reference](#api-reference)
+- [Local Setup & Verification](#local-setup--verification)
+- [Environment Variables](#environment-variables)
 - [Deployment on Render](#deployment-on-render)
-- [Free Tier Keepalive](#free-tier-keepalive)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -30,70 +25,62 @@ Powers the web application at **[https://owais-anime-stream.onrender.com/](https
 
 ## Key Features
 
-- **Studio Console & Embed Playground**: Interactive stream tester supporting anime slugs, AniList numerical IDs, and MyAnimeList IDs. Generates 1-click playable URLs and responsive iframe embed snippets.
-- **Automated 3-Engine Failover**: Cascades between Sora Edge, Neko CDN, and Zozo Edge clusters (`HD-2` &rarr; `HD-1`) for uninterrupted playback.
-- **WASM-Powered Stream Resolution**: Unpacks rotating CDN crypto blocks and derives AES-256-CBC keys using WebAssembly in memory. No Puppeteer or headless browsers required.
-- **Frame-Accurate Subtitles**: Native WebVTT/SRT multi-language subtitle track synchronization with clean styling.
-- **Interactive Skip Markers**: Automatically detects opening themes and ending credits, displaying one-click "Skip Intro" and "Skip Credits" buttons.
-- **PostMessage Event Bus**: Full bidirectional event communication (`ready`, `play`, `pause`, `timeupdate`, `ended`) for seamless host site integration.
-- **Edge Cluster Telemetry**: Live ping and status probing across global delivery nodes.
+- **Studio Console & Embed Playground**: Interactive web console supporting anime slugs, AniList numerical IDs, and MyAnimeList IDs. Generates 1-click playable URLs and responsive iframe embed snippets.
+- **Automated 3-Server Failover**: Cascades between Sora Edge, Neko CDN, and Zozo Edge clusters (`HD-2` &rarr; `HD-1` &rarr; `SD-1`) for uninterrupted playback during upstream hiccups.
+- **Frame-Accurate Subtitles**: Native WebVTT multi-language subtitle track synchronization with interactive `±10.0s` offset calibration directly in player settings.
+- **Interactive AniSkip Markers**: Automatically queries opening themes (`op`) and ending credits (`ed`), rendering one-click "Skip Intro" and "Skip Credits" floating buttons.
+- **HMAC-SHA256 Origin Shield**: Edge proxy protection securing stream links with rotating cryptographic signatures and unix expiration timestamps (`?t=<token>&e=<expiry>`).
+- **Bidirectional PostMessage Bus**: Standardized `yoru:event` protocol (`ready`, `play`, `pause`, `timeupdate`, `ended`, `failover`, `serverchange`) for host site integration.
+- **Edge Cluster Telemetry**: Live ping probing across global delivery nodes (US-East, EU-West, AP-South).
 
 ---
 
 ## System Architecture
 
 ```
-                                      +---------------------------------------------+
-                                      |     Host Website / Client Application       |
-                                      +---------------------+-----------------------+
-                                                            |
-                                               Embed Iframe / REST / WS
-                                                            v
-+-------------------------------------------------------------------------------------------------------------------+
-|  AnimeXOsource_Owais Platform (FastAPI)                                                                           |
-|                                                                                                                   |
-|   GET /                GET /embed/:slug/:ep             GET /search, /home, /info        GET /stream/from-link    |
-|   (Studio Console)     (HLS.js Embed Player)            (Catalog Normalizer)             (WASM Bridge Proxy)      |
-|           |                     |                                |                                 |              |
-|           v                     v                                v                                 v              |
-|    templates/index.html   templates/embed.html              reanime/catalog.py            reanime/resolver.py     |
-+------------------------------------------------------------------|---------------------------------|--------------+
-                                                                   |                                 |
-                                                                   v                                 |
-                                                           https://reanime.to                        |
-                                                           Catalog /api/v1/ & Flix                   |
-                                                                                                     v
-                                                                                         +-----------------------+
-                                                                                         |   Node.js WASM Bridge |
-                                                                                         |   (node/resolve.js)   |
-                                                                                         |                       |
-                                                                                         |  1. Parse SSR payload |
-                                                                                         |  2. Execute WASM byte |
-                                                                                         |  3. PBKDF2 / AES-CBC  |
-                                                                                         +-----------+-----------+
-                                                                                                     |
-                                                                                                     v
-                                                                                            master.m3u8 Stream
-                                                                                            Multilingual Subtitles
-                                                                                            Intro / Outro Timestamps
+                                    +-----------------------------------------+
+                                    |     Host Application / Web Browser      |
+                                    +--------------------+--------------------+
+                                                         |
+                                             Iframe Embed / REST API
+                                                         v
++---------------------------------------------------------------------------------------------------------------+
+|  AnimeXOsource_Owais (FastAPI Single Process)                                                                 |
+|                                                                                                               |
+|   GET /                  GET /embed/...                  GET /api/search           GET /api/stream            |
+|   (Studio Console)       (HLS.js Embed Player)           (AniList GraphQL)         (Stream Resolver & Shield) |
+|         |                      |                                 |                             |              |
+|         v                      v                                 v                             v              |
+|  templates/index.html   templates/embed.html             reanime/anilist.py            reanime/resolver.py    |
+|  static/app.js          static/embed.js                                                reanime/shield.py      |
+|                                                                                        reanime/aniskip.py     |
++---------------------------------------------------------------------------------------------------------------+
+                                                                                                 |
+                                                               +---------------------------------+
+                                                               |
+                                                               v
+                                                +------------------------------+
+                                                | Upstream Resolver & Clusters |
+                                                |   HD-2  •  HD-1  •  SD-1     |
+                                                +------------------------------+
 ```
 
 ---
 
 ## Web Platform & Studio Console
 
-When visiting the platform root (`/`), you have access to:
+Visiting `/` opens the dark cyberpunk studio console:
 1. **Studio Console**: Test stream playback in real-time, toggle between sub/dub, select anime by slug or AniList ID, and copy ready-to-use embed code.
 2. **Stream Engine Test Manifests**: Preset benchmarks (One Piece, Demon Slayer, Jujutsu Kaisen, Attack on Titan, Chainsaw Man, Frieren) that mount directly into the studio player with one click.
-3. **Live Search**: Debounced real-time catalog search bar for querying anime titles.
-4. **Cluster Telemetry**: Live ping probe table monitoring Sora Edge, Neko CDN, and Zozo Edge nodes.
+3. **Live Search**: Debounced 300ms real-time catalog search querying AniList GraphQL.
+4. **Cluster Telemetry**: Live ping probe table monitoring Sora Edge, Neko CDN, and Zozo Edge nodes with 30s auto-refresh.
 5. **Developer Documentation**: Interactive code tabs for Iframe Embeds, JavaScript SDK, REST API, and PostMessage event listeners.
 
 ---
 
 ## Embed Player Engine
 
-You can embed ad-free video streams into any third-party website or app using simple iframes:
+Embed ad-free video streams into any third-party website or application using standard iframes:
 
 ### Route Formats
 
@@ -118,46 +105,16 @@ You can embed ad-free video streams into any third-party website or app using si
 
 ## Developer Integration
 
-### 1. JavaScript SDK Client (`frontend-integration/api-client.js`)
-
-```javascript
-import {
-  setApiBase,
-  searchAnime,
-  getServers,
-  getStreamFromLink,
-  mountHlsPlayer
-} from "./frontend-integration/api-client.js";
-
-// Optional: Set custom API base
-setApiBase("https://owais-anime-stream.onrender.com");
-
-// 1. Search anime
-const searchResults = await searchAnime("Demon Slayer");
-const slug = searchResults.results[0].anime_id;
-
-// 2. Discover servers
-const serverInfo = await getServers(slug, 1);
-const server = serverInfo.sub[0] || serverInfo.dub[0];
-
-// 3. Resolve live stream URL
-const stream = await getStreamFromLink(server.dataLink);
-
-// 4. Attach to player
-const videoElement = document.querySelector("#player");
-mountHlsPlayer(videoElement, stream.url, stream.subtitles);
-videoElement.play();
-```
-
-### 2. PostMessage Event Bus
+### PostMessage Event Bus (`yoru:event`)
 
 The embed player broadcasts playback events to the parent window:
 
 ```javascript
 window.addEventListener("message", (event) => {
-  if (event.data?.source !== "AnimeXOsource_Owais") return;
+  if (event.data?.source !== "AnimeXOsource_Owais" && event.data?.type !== "yoru:event") return;
 
-  switch (event.data.type) {
+  const type = event.data.event || event.data.type;
+  switch (type) {
     case "ready":
       console.log("Player mounted successfully on server:", event.data.server);
       break;
@@ -165,10 +122,13 @@ window.addEventListener("message", (event) => {
       console.log("Stream playback started");
       break;
     case "timeupdate":
-      console.log("Current time:", event.data.currentTime, "/", event.data.duration);
+      console.log("Progress:", event.data.currentTime, "/", event.data.duration);
+      break;
+    case "failover":
+      console.warn("Failover triggered:", event.data.from, "->", event.data.to);
       break;
     case "ended":
-      console.log("Episode ended. Load next episode!");
+      console.log("Episode ended. Autoplay next episode!");
       break;
   }
 });
@@ -176,56 +136,62 @@ window.addEventListener("message", (event) => {
 
 ---
 
-## API Endpoints Reference
+## API Reference
 
 | Method | Path | Description |
 | :--- | :--- | :--- |
 | `GET` | `/` | AnimeXOsource_Owais Web Platform & Studio Console |
-| `GET` | `/embed/{slug}/{episode}` | Interactive ad-free embed player |
+| `GET` | `/embed/{slug}/{episode}` | Standalone Hls.js embed player |
 | `GET` | `/embed/ani/{id}/{episode}` | Embed player by AniList numerical ID |
 | `GET` | `/embed/mal/{id}/{episode}` | Embed player by MyAnimeList numerical ID |
-| `GET` | `/health` / `/api/health` | Edge telemetry and cluster health status |
-| `GET` | `/search?q=...&limit=20` | Catalog anime title search |
-| `GET` | `/home?limit=20` | Latest aired episodes and top weekly releases |
-| `GET` | `/top?period=week&limit=20` | Top ranked anime (`day`, `week`, or `month`) |
-| `GET` | `/schedule` | Weekly airing schedule |
-| `GET` | `/info/{slug}` | Full anime metadata and episode list |
-| `GET` | `/episodes/{slug}` | Episode listing only |
-| `GET` | `/servers/{slug}/{episode}` | Active playback servers (sub/dub) |
-| `GET` | `/stream/{access_id}?v=2` | Resolve stream access ID to playable HLS URL |
-| `GET` | `/stream/from-link?link={url}`| Resolve stream directly from CDN embed link |
-| `GET` | `/thumbnails/{anilist_id}` | Episode timeline preview sprite data |
-| `GET` | `/recommendations/{slug}` | Recommended anime related to slug |
+| `GET` | `/api` | Service JSON root metadata |
+| `GET` | `/api/search` | AniList GraphQL catalog search proxy |
+| `GET` | `/api/anime/{slug}` | Single anime metadata and episode listings |
+| `GET` | `/api/stream/{slug}/{ep}` | Stream resolution with 3-node failover, subtitles, and AniSkip |
+| `GET` | `/api/health` | Edge telemetry and cluster health status |
+| `GET` | `/api/embed-code` | Responsive iframe and direct URL generator |
+| `POST` | `/api/shield/validate` | HMAC-SHA256 origin shield token validation |
 
 ---
 
-## Local Setup
+## Local Setup & Verification
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/walterwhite-69/ReAnime.to-API.git
-cd ReAnime.to-API
+git clone https://github.com/greenman9909-cmd/owais-anime-stream.git
+cd owais-anime-stream
 
-# 2. Create virtual environment
-python -m venv venv
-
-# Linux / macOS:
-source venv/bin/activate
-# Windows (PowerShell / CMD):
-venv\Scripts\activate
-
-# 3. Install Python dependencies
+# 2. Install dependencies
 pip install -r requirements.txt
 
-# 4. Install Node runtime dependencies
-cd node && npm install && cd ..
+# 3. Copy environment configuration
+cp .env.example .env
 
-# 5. Start the platform on localhost
-python -m uvicorn reanime:app --host 127.0.0.1 --port 8000
+# 4. Run automated test suite
+python -m pytest -v
+
+# 5. Boot local development server
+python -m uvicorn reanime.app:app --host 127.0.0.1 --port 8000
 ```
 
 Open your browser at **`http://127.0.0.1:8000`** to access the web platform.
 Swagger interactive API docs are available at **`http://127.0.0.1:8000/docs`**.
+
+---
+
+## Environment Variables
+
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `PORT` | `8000` | Port for local or production HTTP server |
+| `HOST` | `0.0.0.0` | Host bind address |
+| `RESOLVER_BASE` | `""` | Base URL of stream resolver (empty returns 503 for local dev) |
+| `RESOLVER_KEY` | `""` | Bearer auth key for stream resolver |
+| `SHIELD_SECRET` | `"change-me"` | HMAC secret key for URL signing and origin shielding |
+| `STUDIO_TOKEN` | `""` | Optional Bearer token to protect the studio landing page |
+| `SORA_HOST` | `""` | US-East edge cluster host domain |
+| `NEKO_HOST` | `""` | EU-West CDN edge host domain |
+| `ZOZO_HOST` | `""` | AP-South edge host domain |
 
 ---
 
@@ -235,32 +201,10 @@ This repository includes a pre-configured `render.yaml` Blueprint.
 
 ### 1-Click Render Deploy
 
-1. Fork or push this repository to your GitHub account.
-2. Log in to [Render Dashboard](https://dashboard.render.com/).
-3. Click **New +** &rarr; **Blueprint**.
-4. Select your GitHub repository.
-5. Render reads `render.yaml` and deploys both the web platform and backend API on a single service.
-
-### Manual Render Setup
-
-- **Runtime**: Python
-- **Build Command**: `pip install -r requirements.txt && cd node && npm install`
-- **Start Command**: `uvicorn reanime:app --host 0.0.0.0 --port $PORT`
-- **Health Check Path**: `/health`
-- **Environment Variables**:
-  - `PYTHON_VERSION`: `3.11.0`
-  - `NODE_VERSION`: `20.0.0`
-  - `FRONTEND_ORIGIN`: `https://owais-anime-stream.onrender.com`
-
----
-
-## Free Tier Keepalive
-
-Render free-tier instances sleep after 15 minutes of inactivity. To keep your streaming cluster hot 24/7:
-
-1. Create a free monitor at [cron-job.org](https://cron-job.org/) or [UptimeRobot](https://uptimerobot.com/).
-2. Point it to: `https://<your-service>.onrender.com/health`
-3. Interval: **Every 14 minutes**
+1. Push your changes to GitHub.
+2. Go to [Render Dashboard](https://dashboard.render.com/) &rarr; **New +** &rarr; **Blueprint**.
+3. Select this repository.
+4. Render automatically provisions the web service with all dependencies.
 
 ---
 
@@ -274,4 +218,4 @@ Pull requests and issues are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for
 
 Released under the **MIT License**. See [LICENSE](LICENSE) for full text.
 
-Copyright (c) 2026 ReAnime.to API contributors.
+Copyright (c) 2026 AnimeXOsource_Owais contributors.

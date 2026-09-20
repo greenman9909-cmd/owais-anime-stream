@@ -1,0 +1,14 @@
+.git
+.github
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+node_modules
+node/node_modules
+venv
+.env
+scratch*
+test_m3u8_decrypt.js
+flix_app.js

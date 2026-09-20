@@ -8,3 +8,7 @@ node_modules/
 node/.package-lock.json
 node/node_modules/
 .pytest_cache/
+scratch*
+test_m3u8_decrypt.js
+flix_app.js
+

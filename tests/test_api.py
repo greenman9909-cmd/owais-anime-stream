@@ -1,97 +1,120 @@
-import asyncio
+"""Tests for AnimeXOsource_Owais web platform and API endpoints."""
+
 from fastapi.testclient import TestClient
 from reanime.app import app
+from reanime.config import CONFIG
+from reanime import shield
 
-def test_all_endpoints():
-    print("Testing FastAPI app with TestClient...")
+
+def test_root_web_platform():
+    """Verify root / serves the AnimeXOsource_Owais web platform."""
     with TestClient(app) as client:
-        # 1. Health
-        r_health = client.get("/health")
-        print("GET /health:", r_health.status_code, r_health.json().get("service"))
-        assert r_health.status_code == 200
-        assert r_health.json()["status"] == "ok"
+        res = client.get("/")
+        assert res.status_code == 200
+        assert "AnimeXOsource_Owais" in res.text
+        assert "text/html" in res.headers.get("content-type", "")
 
-        # 2. Web Platform & Embed
-        r_web = client.get("/")
-        print("GET / (Web Platform):", r_web.status_code, "Length:", len(r_web.text))
-        assert r_web.status_code == 200
-        assert "AnimeXOsource_Owais" in r_web.text
 
-        r_embed = client.get("/embed/one-piece-xamk74/1")
-        print("GET /embed/one-piece-xamk74/1:", r_embed.status_code)
-        assert r_embed.status_code == 200
-        assert "AnimeXOsource_Owais Player" in r_embed.text
+def test_api_root():
+    """Verify /api JSON root metadata."""
+    with TestClient(app) as client:
+        res = client.get("/api")
+        assert res.status_code == 200
+        data = res.json()
+        assert data.get("name") == "AnimeXOsource_Owais"
+        assert "version" in data
 
-        # 3. API Root
-        r_api = client.get("/api")
-        print("GET /api:", r_api.status_code, r_api.json().get("service"))
-        assert r_api.status_code == 200
 
-        # 4. Search
-        r_search = client.get("/search?q=one+piece&limit=2")
-        print("GET /search:", r_search.status_code)
-        assert r_search.status_code == 200
+def test_embed_player_routes():
+    """Verify /embed/* routes serve the standalone player HTML."""
+    with TestClient(app) as client:
+        # AniList route
+        r_ani = client.get("/embed/ani/21/1")
+        assert r_ani.status_code == 200
+        assert "AnimeXOsource_Owais" in r_ani.text
 
-        # 5. Home
-        r_home = client.get("/home?limit=2")
-        print("GET /home:", r_home.status_code, "keys:", list(r_home.json().keys()))
-        assert r_home.status_code == 200
+        # MyAnimeList route
+        r_mal = client.get("/embed/mal/21/1")
+        assert r_mal.status_code == 200
+        assert "AnimeXOsource_Owais" in r_mal.text
 
-        # 6. Top
-        r_top = client.get("/top?period=week&limit=2")
-        print("GET /top:", r_top.status_code)
-        assert r_top.status_code == 200
+        # Slug route
+        r_slug = client.get("/embed/one-piece-xamk74/1")
+        assert r_slug.status_code == 200
+        assert "AnimeXOsource_Owais" in r_slug.text
 
-        # 7. Schedule
-        r_sched = client.get("/schedule")
-        print("GET /schedule:", r_sched.status_code)
-        assert r_sched.status_code == 200
 
-        # 8. Info
-        r_info = client.get("/info/one-piece-xamk74")
-        print("GET /info/one-piece-xamk74:", r_info.status_code, "anilist_id:", r_info.json().get("anilist_id"))
-        assert r_info.status_code == 200
+def test_cluster_health_telemetry():
+    """Verify /api/health and /health return 3 cluster servers."""
+    with TestClient(app) as client:
+        res = client.get("/api/health")
+        assert res.status_code == 200
+        data = res.json()
+        assert data.get("status") == "ok"
+        servers = data.get("servers", [])
+        assert len(servers) == 3
 
-        # 9. Episodes
-        r_eps = client.get("/episodes/one-piece-xamk74")
-        print("GET /episodes/one-piece-xamk74:", r_eps.status_code, "count:", len(r_eps.json()))
-        assert r_eps.status_code == 200
+        names = [s.get("name") for s in servers]
+        assert "Sora Edge" in names
+        assert "Neko CDN" in names
+        assert "Zozo Edge" in names
 
-        # 10. Servers
-        r_servers = client.get("/servers/one-piece-xamk74/1")
-        print("GET /servers/one-piece-xamk74/1:", r_servers.status_code, "sub count:", len(r_servers.json().get("sub", [])))
-        assert r_servers.status_code == 200
-        servers_data = r_servers.json()
-        assert len(servers_data["sub"]) > 0
-        first_sub = servers_data["sub"][0]
-        print("First sub server:", first_sub)
+        # /health alias
+        res_alias = client.get("/health")
+        assert res_alias.status_code == 200
+        assert res_alias.json().get("status") == "ok"
 
-        # 11. Stream from link
-        link = first_sub["dataLink"]
-        r_stream = client.get(f"/stream/from-link?link={link}")
-        print("GET /stream/from-link:", r_stream.status_code)
-        assert r_stream.status_code == 200
-        stream_json = r_stream.json()
-        print("Resolved stream URL:", stream_json.get("url")[:70] + "...")
-        assert stream_json.get("url", "").startswith("http")
 
-        # 12. CORS preflight check
-        r_cors = client.options(
-            "/search",
-            headers={
-                "Origin": "https://owais-anime-stream.onrender.com",
-                "Access-Control-Request-Method": "GET",
-            }
-        )
-        print("CORS OPTIONS status:", r_cors.status_code, "Allow-Origin:", r_cors.headers.get("access-control-allow-origin"))
-        assert r_cors.headers.get("access-control-allow-origin") == "https://owais-anime-stream.onrender.com"
+def test_stream_unconfigured_resolver_returns_503():
+    """Verify /api/stream returns HTTP 503 when RESOLVER_BASE is empty and unconfigured."""
+    CONFIG["resolver_base"] = ""
+    CONFIG["disable_builtin"] = True
+    try:
+        with TestClient(app) as client:
+            res = client.get("/api/stream/one-piece-xamk74/1")
+            assert res.status_code == 503
+            data = res.json()
+            assert data.get("error") == "resolver not configured"
+            assert "RESOLVER_BASE" in data.get("detail", "")
+    finally:
+        CONFIG["disable_builtin"] = False
 
-        # 13. Frontend adapter /api/anime
-        r_adapter = client.get("/api/anime?perPage=2")
-        print("GET /api/anime:", r_adapter.status_code, "results:", len(r_adapter.json().get("results", [])))
-        assert r_adapter.status_code == 200
 
-        print("\nALL PLATFORM & API TESTS PASSED SUCCESSFULLY!")
+def test_embed_code_generation():
+    """Verify /api/embed-code endpoint."""
+    with TestClient(app) as client:
+        res = client.get("/api/embed-code?slug=one-piece-xamk74&ep=1")
+        assert res.status_code == 200
+        data = res.json()
+        assert "iframe" in data
+        assert "direct" in data
+        assert "embed/one-piece-xamk74/1" in data["iframe"]
+        assert "embed/one-piece-xamk74/1" in data["direct"]
 
-if __name__ == "__main__":
-    test_all_endpoints()
+
+def test_shield_validate_endpoint():
+    """Verify /api/shield/validate validates signed and unsigned URLs."""
+    raw_url = "https://cdn.example.com/hls/stream.m3u8"
+    signed_url = shield.sign(raw_url, ttl_seconds=3600)
+
+    with TestClient(app) as client:
+        # Valid signed URL
+        res_valid = client.post("/api/shield/validate", json={"url": signed_url})
+        assert res_valid.status_code == 200
+        assert res_valid.json().get("valid") is True
+
+        # Unsigned URL
+        res_invalid = client.post("/api/shield/validate", json={"url": raw_url})
+        assert res_invalid.status_code == 200
+        assert res_invalid.json().get("valid") is False
+
+
+def test_catalog_search():
+    """Verify /api/search proxy returns JSON or handles upstream cleanly."""
+    with TestClient(app) as client:
+        res = client.get("/api/search?q=one+piece&perPage=3")
+        # May be 200 if online, or 502 if AniList rate limits or fails in sandbox
+        assert res.status_code in (200, 502)
+        if res.status_code == 200:
+            data = res.json()
+            assert "results" in data

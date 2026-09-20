@@ -4,39 +4,207 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AnimeXOsource_Owais Player</title>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #09090b;
+      --accent: #f43f5e;
+      --accent-hover: #e11d48;
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --border: rgba(255, 255, 255, 0.12);
+      --glass: rgba(18, 18, 24, 0.85);
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    #player-wrapper { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #000; }
-    video { width: 100%; height: 100%; object-fit: contain; }
-    
-    /* Overlay Loader */
-    #loader { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; z-index: 10; transition: opacity 0.3s ease; }
-    .spinner { width: 44px; height: 44px; border: 3px solid rgba(244, 63, 94, 0.2); border-top-color: #f43f5e; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1rem; }
-    .loading-text { color: #9494a6; font-size: 0.85rem; font-family: monospace; letter-spacing: 0.05em; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      user-select: none;
+    }
+
+    #player-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      overflow: hidden;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    /* Subtitles styling */
+    video::cue {
+      background: rgba(0, 0, 0, 0.8);
+      color: #ffffff;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 1.15rem;
+      line-height: 1.4;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+
+    /* Top Bar */
+    .top-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 1rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+      z-index: 25;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .brand-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(244, 63, 94, 0.2);
+      color: var(--accent);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      backdrop-filter: blur(4px);
+    }
+
+    .server-pills {
+      display: flex;
+      gap: 0.5rem;
+      pointer-events: auto;
+    }
+
+    .server-pill {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.3rem 0.65rem;
+      border-radius: 4px;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+    }
+
+    .server-pill:hover {
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #fff;
+    }
+
+    .server-pill.active {
+      background: rgba(34, 197, 94, 0.2);
+      border-color: rgba(34, 197, 94, 0.6);
+      color: #4ade80;
+    }
+
+    /* Big Center Play Button */
+    #big-play-btn {
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: rgba(244, 63, 94, 0.9);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 20;
+      box-shadow: 0 8px 30px rgba(244, 63, 94, 0.5);
+      backdrop-filter: blur(8px);
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    #big-play-btn:hover {
+      transform: scale(1.1);
+      background: var(--accent-hover);
+    }
+
+    /* Loading Spinner Overlay */
+    #loader {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(9, 9, 11, 0.9);
+      z-index: 30;
+      transition: opacity 0.3s ease;
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 3px solid rgba(244, 63, 94, 0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 1rem;
+    }
+
+    .loading-text {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.08em;
+    }
+
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Skip Intro / Outro Buttons */
     .skip-btn {
       position: absolute;
-      bottom: 70px;
+      bottom: 80px;
       right: 24px;
-      z-index: 20;
-      background: rgba(244, 63, 94, 0.9);
+      z-index: 25;
+      background: rgba(244, 63, 94, 0.95);
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       padding: 0.65rem 1.25rem;
       border-radius: 6px;
       font-size: 0.85rem;
       font-weight: 700;
+      letter-spacing: 0.03em;
       cursor: pointer;
       display: none;
       backdrop-filter: blur(8px);
-      box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4);
-      transition: all 0.15s ease;
+      box-shadow: 0 4px 20px rgba(244, 63, 94, 0.4);
+      animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: background 0.15s ease, transform 0.15s ease;
     }
-    .skip-btn:hover { background: #e11d48; transform: scale(1.05); }
+
+    .skip-btn:hover {
+      background: var(--accent-hover);
+      transform: scale(1.05);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
 
     /* Error Overlay */
     #error-overlay {
@@ -46,290 +214,451 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(9, 9, 11, 0.95);
+      background: rgba(9, 9, 11, 0.96);
       color: #fff;
-      z-index: 30;
+      z-index: 40;
       padding: 2rem;
       text-align: center;
     }
-    #error-overlay h3 { color: #f43f5e; margin-bottom: 0.5rem; font-size: 1.1rem; }
-    #error-overlay p { color: #a1a1aa; font-size: 0.85rem; margin-bottom: 1.25rem; }
-    #retry-btn {
-      background: #f43f5e;
-      color: #fff;
-      border: none;
-      padding: 0.5rem 1.25rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.85rem;
+
+    .error-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
     }
 
-    /* Server Failover Badge */
-    #server-badge {
+    #error-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    #error-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      max-width: 440px;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    #retry-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.5rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(244, 63, 94, 0.3);
+      transition: background 0.2s ease;
+    }
+
+    #retry-btn:hover { background: var(--accent-hover); }
+
+    /* Custom Bottom Controls */
+    #player-controls {
       position: absolute;
-      top: 16px;
-      right: 16px;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(4px);
-      color: #22c55e;
-      border: 1px solid rgba(34, 197, 94, 0.3);
-      padding: 0.25rem 0.65rem;
-      border-radius: 9999px;
-      font-size: 0.7rem;
-      font-family: monospace;
-      z-index: 15;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 1.5rem 1.25rem 0.85rem;
+      background: linear-gradient(0deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 65%, transparent 100%);
+      z-index: 22;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    #player-controls.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Scrubber Progress Bar */
+    .progress-wrapper {
+      position: relative;
+      width: 100%;
+      height: 14px;
       display: flex;
       align-items: center;
-      gap: 0.35rem;
+      cursor: pointer;
     }
-    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; }
+
+    .progress-rail {
+      position: relative;
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      transition: height 0.15s ease;
+    }
+
+    .progress-wrapper:hover .progress-rail {
+      height: 6px;
+    }
+
+    .buffer-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: rgba(255, 255, 255, 0.35);
+      border-radius: 2px;
+    }
+
+    .progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .progress-handle {
+      position: absolute;
+      top: 50%;
+      left: 0%;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      transform: translate(-50%, -50%) scale(0);
+      transition: transform 0.15s ease;
+      box-shadow: 0 0 8px rgba(0,0,0,0.6);
+    }
+
+    .progress-wrapper:hover .progress-handle {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* Control Buttons Bar */
+    .controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .controls-group {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .ctrl-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.35rem;
+      border-radius: 4px;
+      opacity: 0.85;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .ctrl-btn:hover {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+
+    .ctrl-btn.active {
+      color: var(--accent);
+      opacity: 1;
+    }
+
+    .time-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+
+    .time-display span:first-child {
+      color: #fff;
+    }
+
+    /* Volume Slider */
+    .volume-box {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .volume-slider {
+      -webkit-appearance: none;
+      width: 64px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    /* Drop-up Menus (CC & Settings) */
+    .menu-container {
+      position: relative;
+    }
+
+    .dropup-menu {
+      position: absolute;
+      bottom: calc(100% + 12px);
+      right: 0;
+      background: var(--glass);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem;
+      min-width: 160px;
+      display: none;
+      flex-direction: column;
+      gap: 0.25rem;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+      z-index: 50;
+    }
+
+    .dropup-menu.is-open {
+      display: flex;
+    }
+
+    .menu-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.35rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0.25rem;
+    }
+
+    .menu-item {
+      font-size: 0.8rem;
+      color: var(--text);
+      padding: 0.4rem 0.65rem;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.15s ease;
+    }
+
+    .menu-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .menu-item.active {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Subtitle Offset Widget */
+    .offset-widget {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.4rem 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .offset-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .offset-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: #fff;
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .offset-btn:hover { background: rgba(255, 255, 255, 0.3); }
+
+    .offset-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      min-width: 44px;
+      text-align: center;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Speed Picker */
+    .speed-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.3rem;
+      padding: 0.3rem 0.5rem;
+    }
+
+    .speed-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.3rem 0;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .speed-btn.active {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+    }
   </style>
 </head>
 <body>
-  <div id="player-wrapper">
+
+  <div id="player-container">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="brand-tag">AnimeXOsource_Owais</div>
+      <div class="server-pills" id="server-pills">
+        <!-- Dynamic Server Pills HD-2, HD-1, SD-1 -->
+      </div>
+    </div>
+
+    <!-- Video Element -->
+    <video id="video-el" playsinline crossorigin="anonymous"></video>
+
+    <!-- Stream Embed Iframe for Cloudflare / Encrypted Stream Clusters -->
+    <iframe id="stream-embed-frame" class="stream-embed-frame" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="display: none; position: absolute; inset: 0; width: 100%; height: 100%; border: none; z-index: 10; background: #000;"></iframe>
+
+    <!-- Center Big Play Button -->
+    <div id="big-play-btn">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+    </div>
+
+    <!-- Loading Spinner -->
     <div id="loader">
       <div class="spinner"></div>
-      <div class="loading-text" id="loader-msg">CONNECTING TO SORA EDGE...</div>
+      <div class="loading-text" id="loader-msg">DISCOVERING CLUSTERS...</div>
     </div>
 
-    <div id="server-badge">
-      <span class="badge-dot"></span>
-      <span id="active-server-name">HD-2 [1080P]</span>
-    </div>
-
-    <video id="video-el" controls playsinline crossorigin="anonymous"></video>
-
-    <button id="skip-btn" class="skip-btn">Skip Intro &rarr;</button>
-
+    <!-- Error Notice Overlay -->
     <div id="error-overlay">
-      <h3>Stream Connection Notice</h3>
-      <p id="error-msg">Failed to mount stream.</p>
-      <button id="retry-btn" onclick="initPlayback()">Retry Connection</button>
+      <div class="error-icon">⚠️</div>
+      <h3 id="error-title">Stream Resolution Notice</h3>
+      <p id="error-desc">Failed to connect to cluster nodes.</p>
+      <button id="retry-btn">Retry Connection</button>
+    </div>
+
+    <!-- AniSkip Buttons -->
+    <button id="skip-intro-btn" class="skip-btn">Skip Intro ⏩</button>
+    <button id="skip-outro-btn" class="skip-btn">Skip Outro ⏩</button>
+
+    <!-- Bottom Controls Bar -->
+    <div id="player-controls">
+      <!-- Scrubber -->
+      <div class="progress-wrapper" id="progress-rail">
+        <div class="progress-rail">
+          <div class="buffer-bar" id="buffer-bar"></div>
+          <div class="progress-bar" id="progress-bar"></div>
+          <div class="progress-handle" id="progress-handle"></div>
+        </div>
+      </div>
+
+      <!-- Controls Row -->
+      <div class="controls-row">
+        <div class="controls-group">
+          <!-- Play/Pause -->
+          <button class="ctrl-btn" id="play-btn" title="Play/Pause (Space)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </button>
+
+          <!-- Volume -->
+          <div class="volume-box">
+            <button class="ctrl-btn" id="volume-btn" title="Mute/Unmute (M)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+            </button>
+            <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.05" value="1">
+          </div>
+
+          <!-- Time -->
+          <div class="time-display">
+            <span id="time-current">00:00</span> / <span id="time-duration">00:00</span>
+          </div>
+        </div>
+
+        <div class="controls-group">
+          <!-- Subtitles (CC) Dropup -->
+          <div class="menu-container">
+            <button class="ctrl-btn" id="cc-btn" title="Subtitles (C)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></svg>
+            </button>
+            <div class="dropup-menu" id="cc-menu">
+              <div class="menu-header">Subtitles</div>
+              <div class="menu-item active">Off</div>
+            </div>
+          </div>
+
+          <!-- Settings Dropup (Offset & Speed) -->
+          <div class="menu-container">
+            <button class="ctrl-btn" id="settings-btn" title="Settings">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+            <div class="dropup-menu" id="settings-menu" style="min-width: 210px;">
+              <div class="menu-header">Subtitle Offset</div>
+              <div class="offset-widget">
+                <span style="color: var(--muted); font-size: 0.75rem;">Delay / Advance:</span>
+                <div class="offset-controls">
+                  <button class="offset-btn" id="offset-dec">-</button>
+                  <span class="offset-val" id="offset-val">+0.0s</span>
+                  <button class="offset-btn" id="offset-inc">+</button>
+                </div>
+              </div>
+
+              <div class="menu-header" style="margin-top: 0.35rem;">Playback Speed</div>
+              <div class="speed-grid">
+                <button class="speed-btn" data-speed="0.5">0.5x</button>
+                <button class="speed-btn active" data-speed="1.0">1.0x</button>
+                <button class="speed-btn" data-speed="1.5">1.5x</button>
+                <button class="speed-btn" data-speed="2.0">2.0x</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fullscreen -->
+          <button class="ctrl-btn" id="fullscreen-btn" title="Fullscreen (F)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const pathParts = window.location.pathname.split('/').filter(Boolean);
-    // Determine slug and episode from path
-    // Formats: /embed/ani/:id/:ep, /embed/mal/:id/:ep, /embed/:slug/:ep
-    let slug = 'one-piece-xamk74';
-    let ep = 1;
-    let catalogType = 'slug';
-
-    if (pathParts[1] === 'ani' || pathParts[1] === 'mal') {
-      catalogType = pathParts[1];
-      slug = pathParts[2] || slug;
-      ep = parseInt(pathParts[3] || '1', 10);
-    } else if (pathParts[1]) {
-      slug = pathParts[1];
-      ep = parseInt(pathParts[2] || '1', 10);
-    }
-
-    const preferredTrack = urlParams.get('track') || 'sub';
-
-    const video = document.getElementById('video-el');
-    const loader = document.getElementById('loader');
-    const loaderMsg = document.getElementById('loader-msg');
-    const skipBtn = document.getElementById('skip-btn');
-    const errorOverlay = document.getElementById('error-overlay');
-    const errorMsg = document.getElementById('error-msg');
-    const activeServerName = document.getElementById('active-server-name');
-
-    let hls = null;
-    let streamMeta = null;
-    let availableServers = [];
-    let currentServerIndex = 0;
-
-    function postEvent(type, data = {}) {
-      try {
-        window.parent.postMessage({ source: 'AnimeXOsource_Owais', type, ...data }, '*');
-      } catch (e) {}
-    }
-
-    async function fetchServers() {
-      // If numeric ani ID
-      let fetchUrl = `/servers/${encodeURIComponent(slug)}/${ep}`;
-      if (catalogType === 'ani' && !isNaN(slug)) {
-        fetchUrl = `/servers/id/${ep}?anilist_id=${slug}`;
-      }
-      try {
-        const r = await fetch(fetchUrl);
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const data = await r.json();
-        const list = preferredTrack === 'dub' ? (data.dub || []) : (data.sub || []);
-        return list.length > 0 ? list : (data.sub || data.dub || []);
-      } catch (e) {
-        // Fallback to direct stream endpoint
-        return null;
-      }
-    }
-
-    async function resolveActiveStream(server) {
-      if (server && server.dataLink) {
-        const res = await fetch(`/stream/from-link?link=${encodeURIComponent(server.dataLink)}`);
-        if (!res.ok) throw new Error(`Stream resolve failed: ${res.status}`);
-        return await res.json();
-      } else {
-        // Use direct adapter
-        const res = await fetch(`/api/stream/${encodeURIComponent(slug)}/${ep}`);
-        if (!res.ok) throw new Error(`Stream adapter failed: ${res.status}`);
-        const data = await res.json();
-        return {
-          url: data.sources[0]?.url,
-          subtitles: data.subtitles || [],
-          intro_chapter: data.intro_chapter,
-          outro_chapter: data.outro_chapter,
-          serverName: data.sources[0]?.server || 'HD-2'
-        };
-      }
-    }
-
-    async function initPlayback() {
-      errorOverlay.style.display = 'none';
-      loader.style.display = 'flex';
-      loaderMsg.innerText = 'DISCOVERING PLAYBACK NODES...';
-
-      try {
-        availableServers = await fetchServers() || [];
-        currentServerIndex = 0;
-        await mountCurrentServer();
-      } catch (err) {
-        showError('Unable to resolve playback nodes. Please try again.');
-      }
-    }
-
-    async function mountCurrentServer() {
-      const server = availableServers[currentServerIndex] || null;
-      const sName = server ? server.serverName : 'HD-2 EDGE';
-      activeServerName.innerText = `${sName} [1080P]`;
-      loaderMsg.innerText = `RESOLVING HLS VIA ${sName}...`;
-
-      try {
-        streamMeta = await resolveActiveStream(server);
-        loadHlsSource(streamMeta.url, streamMeta.subtitles);
-      } catch (err) {
-        console.warn(`Server ${sName} failed:`, err);
-        // Cascading 3-engine failover
-        if (currentServerIndex + 1 < availableServers.length) {
-          currentServerIndex++;
-          loaderMsg.innerText = 'PRIMARY NODE TIMEOUT. FAILING OVER TO BACKUP...';
-          setTimeout(mountCurrentServer, 500);
-        } else {
-          showError('All streaming clusters currently busy. Please retry shortly.');
-        }
-      }
-    }
-
-    function loadHlsSource(m3u8Url, subtitles = []) {
-      if (hls) {
-        hls.destroy();
-        hls = null;
-      }
-
-      // Clear subtitles
-      while (video.firstChild) video.removeChild(video.firstChild);
-
-      // Add subtitle tracks
-      (subtitles || []).forEach(sub => {
-        const track = document.createElement('track');
-        track.kind = 'subtitles';
-        track.label = sub.language || 'Subtitles';
-        track.srclang = (sub.language || 'en').substring(0, 2).toLowerCase();
-        track.src = sub.url;
-        if (sub.default) track.default = true;
-        video.appendChild(track);
-      });
-
-      if (Hls.isSupported()) {
-        hls = new Hls({
-          enableWorker: true,
-          lowLatencyMode: true,
-          backBufferLength: 90
-        });
-
-        hls.loadSource(m3u8Url);
-        hls.attachMedia(video);
-
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          loader.style.display = 'none';
-          postEvent('ready', { server: activeServerName.innerText });
-          video.play().catch(() => {});
-        });
-
-        hls.on(Hls.Events.ERROR, (event, data) => {
-          if (data.fatal) {
-            console.warn('Fatal HLS error, attempting recovery:', data.details);
-            switch (data.type) {
-              case Hls.ErrorTypes.NETWORK_ERROR:
-                hls.startLoad();
-                break;
-              case Hls.ErrorTypes.MEDIA_ERROR:
-                hls.recoverMediaError();
-                break;
-              default:
-                if (currentServerIndex + 1 < availableServers.length) {
-                  currentServerIndex++;
-                  mountCurrentServer();
-                } else {
-                  showError('Media decode failed. Please retry.');
-                }
-                break;
-            }
-          }
-        });
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = m3u8Url;
-        video.addEventListener('loadedmetadata', () => {
-          loader.style.display = 'none';
-          video.play().catch(() => {});
-        });
-      } else {
-        showError('HLS playback is not supported in this browser.');
-      }
-    }
-
-    function showError(msg) {
-      loader.style.display = 'none';
-      errorMsg.innerText = msg;
-      errorOverlay.style.display = 'flex';
-      postEvent('error', { message: msg });
-    }
-
-    // Skip Intro / Outro Chapter Monitor
-    video.addEventListener('timeupdate', () => {
-      const cur = video.currentTime;
-      postEvent('timeupdate', { currentTime: cur, duration: video.duration });
-
-      if (streamMeta && streamMeta.intro_chapter) {
-        const { start, end } = streamMeta.intro_chapter;
-        if (cur >= start && cur <= end) {
-          skipBtn.innerText = 'Skip Intro \u2192';
-          skipBtn.style.display = 'block';
-          skipBtn.onclick = () => { video.currentTime = end + 1; };
-          return;
-        }
-      }
-
-      if (streamMeta && streamMeta.outro_chapter) {
-        const { start, end } = streamMeta.outro_chapter;
-        if (cur >= start && cur <= end) {
-          skipBtn.innerText = 'Skip Credits \u2192';
-          skipBtn.style.display = 'block';
-          skipBtn.onclick = () => { video.currentTime = end + 1; };
-          return;
-        }
-      }
-
-      skipBtn.style.display = 'none';
-    });
-
-    video.addEventListener('play', () => postEvent('play'));
-    video.addEventListener('pause', () => postEvent('pause'));
-    video.addEventListener('ended', () => postEvent('ended'));
-
-    window.addEventListener('DOMContentLoaded', initPlayback);
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
+  <script src="/static/embed.js"></script>
 </body>
 </html>

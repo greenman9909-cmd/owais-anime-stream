@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AnimeXOsource_Owais — Clean Anime Video Embed Infrastructure</title>
+  <title>AnimeXOsource_Owais | Open-Source Anime Embed Infrastructure</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,449 +13,836 @@
 <body>
 
   <!-- Navigation -->
-  <header class="navbar">
+  <header class="nav-bar">
     <div class="nav-brand">
-      <div class="brand-dot"></div>
+      <div class="brand-icon">
+        <svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/></svg>
+      </div>
       <span>AnimeXOsource_Owais</span>
-      <span class="brand-tag">CORE</span>
+      <span class="brand-badge">OPEN SOURCE</span>
     </div>
 
-    <nav class="nav-links">
+    <nav class="nav-links" aria-label="Main Navigation">
       <a href="#studio">Studio</a>
       <a href="#catalog">Catalog</a>
       <a href="#architecture">Architecture</a>
       <a href="#telemetry">Telemetry</a>
       <a href="#docs">Documentation</a>
+      <a href="https://github.com/greenman9909-cmd/owais-anime-stream" target="_blank" rel="noopener noreferrer">GitHub</a>
     </nav>
 
-    <div class="nav-status">
-      <span class="status-indicator"></span>
-      <span>3 Nodes Operational</span>
+    <div class="nav-status" aria-label="Cluster Status: 3 Nodes Operational">
+      <span class="status-dot"></span>
+      <span>3 Nodes Active</span>
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <section class="hero-section">
-    <div class="eyebrow">3-Server Failover • Zero Ads • Frame-Accurate Subs</div>
-    <h1 class="hero-title">Clean, high-speed<br>anime embeds.</h1>
-    <p class="hero-sub">
-      A lightweight iframe player with automatic 3-engine failover, interactive skip markers,
-      and instant playback. Drop into any web application or streaming portal.
-    </p>
-    <div class="hero-actions">
-      <a href="#studio" class="btn btn-primary">Launch Studio Console</a>
-      <a href="#docs" class="btn btn-secondary">API Reference</a>
-    </div>
-  </section>
-
-  <!-- Studio Console Section -->
-  <section class="studio-section" id="studio">
-    <div class="studio-grid">
-      <!-- Player Preview -->
-      <div class="studio-preview">
-        <div class="player-container">
-          <iframe id="live-iframe" class="live-iframe" allowfullscreen allow="autoplay; fullscreen; picture-in-picture"></iframe>
-        </div>
-        <div class="studio-bar">
-          <div class="url-display">
-            <span>MOUNT:</span>
-            <span id="display-stream-url" class="mono">Loading...</span>
-          </div>
-          <button class="btn btn-secondary" id="copy-stream-btn" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="copyStreamUrl()">
-            <span id="copy-stream-label">Copy URL</span>
-          </button>
-        </div>
+  <main>
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-tag">
+        <span>FAILOVER READY</span> &bull; Zero Ads &bull; WebVTT Subtitles &bull; MIT License
       </div>
+      <h1 class="hero-headline" id="hero-title">
+        Clean, High-Speed<br>Anime Video Embeds.
+      </h1>
+      <p class="hero-sub">
+        A self-hosted embed player with automated 3-node cluster failover, interactive skip markers,
+        and instant playback resolution. Free and open source for developers.
+      </p>
+      <div class="hero-ctas">
+        <a href="#studio" class="btn btn-primary">Launch Studio Console</a>
+        <a href="#docs" class="btn btn-secondary">API & SDK Documentation</a>
+      </div>
+    </section>
 
-      <!-- Controls Panel -->
-      <div class="studio-controls">
-        <div class="control-title">
-          <span>Stream Parameters</span>
-          <span class="brand-tag">v2 PROTOCOL</span>
-        </div>
-
-        <div class="control-group">
-          <label class="control-label">Catalog Resolver</label>
-          <select id="stream-catalog" class="control-select" onchange="refreshStreamRoute()">
-            <option value="slug" selected>ReAnime Slug / Query</option>
-            <option value="ani">AniList Numerical ID</option>
-            <option value="mal">MyAnimeList Numerical ID</option>
-          </select>
-        </div>
-
-        <div class="control-group">
-          <label class="control-label">Anime Slug or ID</label>
-          <input type="text" id="stream-id" class="control-input" value="one-piece-xamk74" placeholder="e.g. one-piece-xamk74 or 21" oninput="refreshStreamRoute()">
-        </div>
-
-        <div class="control-row">
-          <div class="control-group">
-            <label class="control-label">Episode</label>
-            <input type="number" id="stream-ep" class="control-input" value="1" min="1" oninput="refreshStreamRoute()">
+    <!-- Studio Console Section -->
+    <section class="studio-wrapper" id="studio" aria-labelledby="studio-title">
+      <div class="studio-panel">
+        <!-- Player Preview -->
+        <div class="preview-container">
+          <div class="iframe-box">
+            <iframe id="live-iframe" class="iframe-player" title="AnimeXOsource_Owais Live Player Preview" allowfullscreen allow="autoplay; fullscreen; picture-in-picture" referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
-          <div class="control-group">
-            <label class="control-label">Track Type</label>
-            <select id="stream-track" class="control-select" onchange="refreshStreamRoute()">
-              <option value="sub" selected>Subbed (Soft-sub)</option>
-              <option value="dub">Dubbed</option>
-            </select>
-          </div>
-        </div>
-
-        <button class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" onclick="mountActiveStream()">
-          Mount Stream in Studio
-        </button>
-
-        <div class="control-group" style="margin-top: 0.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-            <label class="control-label">Iframe Embed Code</label>
-            <button id="copy-embed-btn" style="background: none; border: none; color: var(--accent); font-size: 0.75rem; font-weight: 600; cursor: pointer;" onclick="copyEmbedCode()">
-              <span id="copy-embed-label">Copy Embed Code</span>
+          <div class="preview-meta-bar">
+            <div class="preview-url">
+              <strong>MOUNT: </strong>
+              <span id="display-stream-url" class="mono">Loading player...</span>
+            </div>
+            <button class="btn btn-secondary" id="copy-stream-btn" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="copyStreamUrl()" aria-label="Copy Mount URL">
+              <span id="copy-stream-label">Copy URL</span>
             </button>
           </div>
-          <div class="embed-code-box">
-            <textarea id="display-embed-code" class="embed-code-textarea" readonly></textarea>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="controls-container">
+          <div class="controls-header">
+            <span id="studio-title">Stream Parameters</span>
+            <span class="brand-badge">PROTOCOL v2</span>
+          </div>
+
+          <form id="stream-parameters-form" onsubmit="event.preventDefault(); mountActiveStream();">
+            <div class="form-group" style="margin-bottom: 0.85rem;">
+              <span class="form-label" id="catalog-label">Catalog Identifier</span>
+              <div class="radio-pill-group" role="radiogroup" aria-labelledby="catalog-label">
+                <label class="radio-pill">
+                  <input type="radio" name="catalog-type" value="ani" checked onchange="handleCatalogTypeChange(this.value)">
+                  <span>AniList ID</span>
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="catalog-type" value="slug" onchange="handleCatalogTypeChange(this.value)">
+                  <span>Slug / Title</span>
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="catalog-type" value="mal" onchange="handleCatalogTypeChange(this.value)">
+                  <span>MAL ID</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0.85rem;">
+              <span class="form-label" id="engine-label">Playback Engine</span>
+              <div class="radio-pill-group" role="radiogroup" aria-labelledby="engine-label">
+                <label class="radio-pill">
+                  <input type="radio" name="player-type" value="hls" checked onchange="handlePlayerTypeChange(this.value)">
+                  <span>HLS Adaptive</span>
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="player-type" value="direct" onchange="handlePlayerTypeChange(this.value)">
+                  <span>Direct Stream</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0.85rem;">
+              <label class="form-label" for="stream-id">Anime ID or Slug</label>
+              <input type="text" id="stream-id" name="stream-id" class="form-input" value="21" placeholder="e.g. 21 (One Piece) or 113415 (Jujutsu Kaisen)" oninput="refreshStreamRoute()" required>
+            </div>
+
+            <div class="form-row" style="margin-bottom: 0.85rem;">
+              <div class="form-group">
+                <label class="form-label" for="stream-ep">Episode</label>
+                <input type="number" id="stream-ep" name="stream-ep" class="form-input" value="1" min="1" oninput="refreshStreamRoute()" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="stream-track">Audio / Track</label>
+                <select id="stream-track" name="stream-track" class="form-select" onchange="refreshStreamRoute()">
+                  <option value="sub" selected>Subbed (Original)</option>
+                  <option value="dub">Dubbed (English)</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.25rem;">
+              Mount Stream in Player
+            </button>
+          </form>
+
+          <div class="form-group" style="margin-top: 0.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+              <label class="form-label" for="display-embed-code">Iframe Embed Code</label>
+              <button id="copy-embed-btn" style="background: none; border: none; color: var(--accent); font-size: 0.75rem; font-weight: 600; cursor: pointer;" onclick="copyEmbedCode()" aria-label="Copy Iframe Code">
+                <span id="copy-embed-label">Copy Code</span>
+              </button>
+            </div>
+            <textarea id="display-embed-code" class="form-input mono" style="height: 64px; font-size: 0.75rem; resize: none;" readonly></textarea>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Catalog Section -->
-  <section class="catalog-section" id="catalog">
-    <div class="section-head">
-      <div>
-        <h2 class="section-title">Stream Engine Test Manifests</h2>
-        <p class="section-desc">
-          Pre-configured 1080p stream manifests verified against Sora, Neko, and Zozo clusters. Click any benchmark to mount in the studio playground.
-        </p>
-      </div>
-
-      <div class="catalog-search-bar">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" placeholder="Search anime titles..." oninput="handleSearchInput(this.value)">
-      </div>
-    </div>
-
-    <div class="filter-pills">
-      <button class="filter-btn active" onclick="filterAnimeCards('all', this)">All Releases</button>
-      <button class="filter-btn" onclick="filterAnimeCards('trending', this)">Trending</button>
-      <button class="filter-btn" onclick="filterAnimeCards('action', this)">Action</button>
-      <button class="filter-btn" onclick="filterAnimeCards('shonen', this)">Shonen</button>
-      <button class="filter-btn" onclick="filterAnimeCards('fantasy', this)">Fantasy</button>
-    </div>
-
-    <div class="anime-grid" id="anime-grid">
-      <!-- One Piece -->
-      <div class="anime-card is-active-stream" id="card-one-piece-xamk74" data-category="all trending action shonen" data-title="ONE PIECE" onclick="mountAnimePreset('one-piece-xamk74', 1, 'slug')">
-        <div class="card-thumb">
-          <img src="https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21-ELSYx3yMPcKM.jpg" alt="One Piece" loading="lazy">
-          <span class="card-badge">PRESET #01</span>
-          <span class="card-res">1080P</span>
+    <!-- Catalog Section -->
+    <section class="catalog-wrapper" id="catalog" aria-labelledby="catalog-title">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title" id="catalog-title">Verified Stream Manifests</h2>
+          <p class="section-subtitle">
+            Pre-configured benchmark titles verified against cluster nodes. Select any title to load into the preview player.
+          </p>
         </div>
-        <div class="card-body">
-          <h4 class="card-title">ONE PIECE</h4>
-          <div class="card-meta">
-            <span>Toei Animation</span>
-            <span>·</span>
-            <span>1999</span>
-            <span>·</span>
-            <span class="card-rating">★ 8.8</span>
+
+        <div class="search-box">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="catalog-search-input" placeholder="Search anime catalog..." oninput="handleSearchInput(this.value)" aria-label="Search anime titles">
+        </div>
+      </div>
+
+      <div class="filter-bar" role="toolbar" aria-label="Genre Filters">
+        <button class="filter-btn active" onclick="filterAnimeCards('all', this)">All Releases</button>
+        <button class="filter-btn" onclick="filterAnimeCards('trending', this)">Trending</button>
+        <button class="filter-btn" onclick="filterAnimeCards('action', this)">Action</button>
+        <button class="filter-btn" onclick="filterAnimeCards('shonen', this)">Shonen</button>
+        <button class="filter-btn" onclick="filterAnimeCards('fantasy', this)">Fantasy</button>
+      </div>
+
+      <div class="card-grid" id="anime-grid">
+        <!-- One Piece -->
+        <div class="anime-card" id="card-21" data-category="all trending action shonen" data-title="ONE PIECE" onclick="mountAnimePreset('21', 1, 'ani')" role="button" tabindex="0" onkeydown="if(event.key==='Enter') mountAnimePreset('21', 1, 'ani')">
+          <div class="card-art">
+            <img src="/static/covers/21.jpg" alt="One Piece anime cover art" loading="lazy" onerror="this.onerror=null; this.src='/static/covers/21.jpg'">
+            <span class="card-tag">ANILIST #21</span>
+            <span class="card-res">1080P</span>
           </div>
-          <button class="card-btn" type="button">Mount Stream ↗</button>
-        </div>
-      </div>
-
-      <!-- Demon Slayer -->
-      <div class="anime-card" id="card-demon-slayer" data-category="all trending action shonen" data-title="Demon Slayer: Kimetsu no Yaiba" onclick="mountAnimePreset('demon-slayer-kimetsu-no-yaiba-xmk920', 1, 'slug')">
-        <div class="card-thumb">
-          <img src="https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101922-PEn1CTDYxwa2.jpg" alt="Demon Slayer" loading="lazy">
-          <span class="card-badge">PRESET #02</span>
-          <span class="card-res">1080P</span>
-        </div>
-        <div class="card-body">
-          <h4 class="card-title">Demon Slayer: Kimetsu no Yaiba</h4>
-          <div class="card-meta">
-            <span>ufotable</span>
-            <span>·</span>
-            <span>2019</span>
-            <span>·</span>
-            <span class="card-rating">★ 8.5</span>
+          <div class="card-details">
+            <h3 class="card-title">ONE PIECE</h3>
+            <div class="card-subtext">
+              <span>Toei Animation</span>
+              <span>&bull;</span>
+              <span>1999</span>
+              <span>&bull;</span>
+              <span class="card-score">Score: 88%</span>
+            </div>
+            <button class="mount-btn" type="button" aria-label="Mount One Piece stream">Mount Stream</button>
           </div>
-          <button class="card-btn" type="button">Mount Stream ↗</button>
         </div>
-      </div>
 
-      <!-- Jujutsu Kaisen -->
-      <div class="anime-card" id="card-jujutsu-kaisen" data-category="all trending action shonen" data-title="Jujutsu Kaisen" onclick="mountAnimePreset('jujutsu-kaisen-xmk312', 1, 'slug')">
-        <div class="card-thumb">
-          <img src="https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx113415-bbBWj4pEFseh.jpg" alt="Jujutsu Kaisen" loading="lazy">
-          <span class="card-badge">PRESET #03</span>
-          <span class="card-res">1080P</span>
-        </div>
-        <div class="card-body">
-          <h4 class="card-title">Jujutsu Kaisen</h4>
-          <div class="card-meta">
-            <span>MAPPA</span>
-            <span>·</span>
-            <span>2020</span>
-            <span>·</span>
-            <span class="card-rating">★ 8.6</span>
+        <!-- Jujutsu Kaisen -->
+        <div class="anime-card is-active-stream" id="card-113415" data-category="all trending action shonen" data-title="Jujutsu Kaisen" onclick="mountAnimePreset('113415', 1, 'ani')" role="button" tabindex="0" onkeydown="if(event.key==='Enter') mountAnimePreset('113415', 1, 'ani')">
+          <div class="card-art">
+            <img src="/static/covers/113415.jpg" alt="Jujutsu Kaisen anime cover art" loading="lazy" onerror="this.onerror=null; this.src='/static/covers/21.jpg'">
+            <span class="card-tag">ANILIST #113415</span>
+            <span class="card-res">1080P</span>
           </div>
-          <button class="card-btn" type="button">Mount Stream ↗</button>
-        </div>
-      </div>
-
-      <!-- Attack on Titan -->
-      <div class="anime-card" id="card-attack-on-titan" data-category="all action fantasy" data-title="Attack on Titan" onclick="mountAnimePreset('attack-on-titan-xmk141', 1, 'slug')">
-        <div class="card-thumb">
-          <img src="https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx16498-73IhOXpJZiMF.jpg" alt="Attack on Titan" loading="lazy">
-          <span class="card-badge">PRESET #04</span>
-          <span class="card-res">1080P</span>
-        </div>
-        <div class="card-body">
-          <h4 class="card-title">Attack on Titan</h4>
-          <div class="card-meta">
-            <span>WIT Studio</span>
-            <span>·</span>
-            <span>2013</span>
-            <span>·</span>
-            <span class="card-rating">★ 8.9</span>
+          <div class="card-details">
+            <h3 class="card-title">Jujutsu Kaisen</h3>
+            <div class="card-subtext">
+              <span>MAPPA</span>
+              <span>&bull;</span>
+              <span>2020</span>
+              <span>&bull;</span>
+              <span class="card-score">Score: 86%</span>
+            </div>
+            <button class="mount-btn" type="button" aria-label="Mount Jujutsu Kaisen stream">Mount Stream</button>
           </div>
-          <button class="card-btn" type="button">Mount Stream ↗</button>
         </div>
-      </div>
 
-      <!-- Chainsaw Man -->
-      <div class="anime-card" id="card-chainsaw-man" data-category="all action fantasy" data-title="Chainsaw Man" onclick="mountAnimePreset('chainsaw-man-xmk481', 1, 'slug')">
-        <div class="card-thumb">
-          <img src="https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx127230-FloXF5kF212D.jpg" alt="Chainsaw Man" loading="lazy">
-          <span class="card-badge">PRESET #05</span>
-          <span class="card-res">1080P</span>
-        </div>
-        <div class="card-body">
-          <h4 class="card-title">Chainsaw Man</h4>
-          <div class="card-meta">
-            <span>MAPPA</span>
-            <span>·</span>
-            <span>2022</span>
-            <span>·</span>
-            <span class="card-rating">★ 8.4</span>
+        <!-- Demon Slayer -->
+        <div class="anime-card" id="card-101922" data-category="all trending action shonen" data-title="Demon Slayer: Kimetsu no Yaiba" onclick="mountAnimePreset('101922', 1, 'ani')" role="button" tabindex="0" onkeydown="if(event.key==='Enter') mountAnimePreset('101922', 1, 'ani')">
+          <div class="card-art">
+            <img src="/static/covers/101922.jpg" alt="Demon Slayer anime cover art" loading="lazy" onerror="this.onerror=null; this.src='/static/covers/21.jpg'">
+            <span class="card-tag">ANILIST #101922</span>
+            <span class="card-res">1080P</span>
           </div>
-          <button class="card-btn" type="button">Mount Stream ↗</button>
-        </div>
-      </div>
-
-      <!-- Frieren -->
-      <div class="anime-card" id="card-frieren" data-category="all trending fantasy" data-title="Frieren: Beyond Journey's End" onclick="mountAnimePreset('frieren-beyond-journeys-end-xmk890', 1, 'slug')">
-        <div class="card-thumb">
-          <img src="https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx154587-n1HJZ28cM4tA.jpg" alt="Frieren" loading="lazy">
-          <span class="card-badge">PRESET #06</span>
-          <span class="card-res">1080P</span>
-        </div>
-        <div class="card-body">
-          <h4 class="card-title">Frieren: Beyond Journey's End</h4>
-          <div class="card-meta">
-            <span>Madhouse</span>
-            <span>·</span>
-            <span>2023</span>
-            <span>·</span>
-            <span class="card-rating">★ 9.3</span>
+          <div class="card-details">
+            <h3 class="card-title">Demon Slayer: Kimetsu no Yaiba</h3>
+            <div class="card-subtext">
+              <span>ufotable</span>
+              <span>&bull;</span>
+              <span>2019</span>
+              <span>&bull;</span>
+              <span class="card-score">Score: 85%</span>
+            </div>
+            <button class="mount-btn" type="button" aria-label="Mount Demon Slayer stream">Mount Stream</button>
           </div>
-          <button class="card-btn" type="button">Mount Stream ↗</button>
+        </div>
+
+        <!-- Attack on Titan -->
+        <div class="anime-card" id="card-16498" data-category="all action fantasy" data-title="Attack on Titan" onclick="mountAnimePreset('16498', 1, 'ani')" role="button" tabindex="0" onkeydown="if(event.key==='Enter') mountAnimePreset('16498', 1, 'ani')">
+          <div class="card-art">
+            <img src="/static/covers/16498.jpg" alt="Attack on Titan anime cover art" loading="lazy" onerror="this.onerror=null; this.src='/static/covers/21.jpg'">
+            <span class="card-tag">ANILIST #16498</span>
+            <span class="card-res">1080P</span>
+          </div>
+          <div class="card-details">
+            <h3 class="card-title">Attack on Titan</h3>
+            <div class="card-subtext">
+              <span>WIT Studio</span>
+              <span>&bull;</span>
+              <span>2013</span>
+              <span>&bull;</span>
+              <span class="card-score">Score: 89%</span>
+            </div>
+            <button class="mount-btn" type="button" aria-label="Mount Attack on Titan stream">Mount Stream</button>
+          </div>
+        </div>
+
+        <!-- Chainsaw Man -->
+        <div class="anime-card" id="card-127230" data-category="all action fantasy" data-title="Chainsaw Man" onclick="mountAnimePreset('127230', 1, 'ani')" role="button" tabindex="0" onkeydown="if(event.key==='Enter') mountAnimePreset('127230', 1, 'ani')">
+          <div class="card-art">
+            <img src="/static/covers/127230.png" alt="Chainsaw Man anime cover art" loading="lazy" onerror="this.onerror=null; this.src='/static/covers/21.jpg'">
+            <span class="card-tag">ANILIST #127230</span>
+            <span class="card-res">1080P</span>
+          </div>
+          <div class="card-details">
+            <h3 class="card-title">Chainsaw Man</h3>
+            <div class="card-subtext">
+              <span>MAPPA</span>
+              <span>&bull;</span>
+              <span>2022</span>
+              <span>&bull;</span>
+              <span class="card-score">Score: 84%</span>
+            </div>
+            <button class="mount-btn" type="button" aria-label="Mount Chainsaw Man stream">Mount Stream</button>
+          </div>
+        </div>
+
+        <!-- Frieren -->
+        <div class="anime-card" id="card-154587" data-category="all trending fantasy" data-title="Frieren: Beyond Journey's End" onclick="mountAnimePreset('154587', 1, 'ani')" role="button" tabindex="0" onkeydown="if(event.key==='Enter') mountAnimePreset('154587', 1, 'ani')">
+          <div class="card-art">
+            <img src="/static/covers/154587.jpg" alt="Frieren: Beyond Journey's End anime cover art" loading="lazy" onerror="this.onerror=null; this.src='/static/covers/21.jpg'">
+            <span class="card-tag">ANILIST #154587</span>
+            <span class="card-res">1080P</span>
+          </div>
+          <div class="card-details">
+            <h3 class="card-title">Frieren: Beyond Journey's End</h3>
+            <div class="card-subtext">
+              <span>Madhouse</span>
+              <span>&bull;</span>
+              <span>2023</span>
+              <span>&bull;</span>
+              <span class="card-score">Score: 93%</span>
+            </div>
+            <button class="mount-btn" type="button" aria-label="Mount Frieren stream">Mount Stream</button>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Architecture Section -->
-  <section class="content-section" id="architecture">
-    <div class="section-head">
-      <div>
-        <h2 class="section-title">Engineered for Reliability</h2>
-        <p class="section-desc">Multi-server failover and edge proxying designed for production anime platforms.</p>
-      </div>
-    </div>
-
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <h3 class="feature-title">3-Server Failover</h3>
-        <p class="feature-desc">Automatic cascading between Sora, Neko, and Zozo clusters ensures uninterrupted stream playback even during regional upstream network hiccups.</p>
+    <!-- Architecture Section -->
+    <section class="section-wrapper" id="architecture" aria-labelledby="arch-title">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title" id="arch-title">Engineered Architecture</h2>
+          <p class="section-subtitle">Fault-tolerant stream resolution and edge proxying designed for reliability.</p>
+        </div>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">💬</div>
-        <h3 class="feature-title">Frame-Accurate Subtitles</h3>
-        <p class="feature-desc">Low-latency WebVTT subtitle synchronization with clean styling and custom font rendering directly integrated into HTML5 cues.</p>
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="arch-icon-wrapper">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          </div>
+          <h3 class="arch-title">3-Server Cluster Failover</h3>
+          <p class="arch-desc">Automatic cascading between Sora, Neko, and Zozo edge nodes ensures continuous stream delivery even during regional upstream outages.</p>
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-icon-wrapper">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3 class="arch-title">Frame-Accurate Subtitles</h3>
+          <p class="arch-desc">Synchronized WebVTT and ASS subtitles with custom offset calibration (&plusmn;10s) rendered directly into HTML5 video cues.</p>
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-icon-wrapper">
+            <svg class="icon" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          </div>
+          <h3 class="arch-title">Dual Catalog Sync</h3>
+          <p class="arch-desc">Native support for both AniList and MyAnimeList IDs with automatic metadata translation and slug mapping.</p>
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-icon-wrapper">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3 class="arch-title">HMAC-SHA256 Token Shield</h3>
+          <p class="arch-desc">Upstream CDN origins and playback URLs are signed with time-expiring cryptographic tokens to prevent unauthorized hotlinking.</p>
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-icon-wrapper">
+            <svg class="icon" viewBox="0 0 24 24"><polygon points="13 19 22 12 13 5 13 19"/><polygon points="2 19 11 12 2 5 2 19"/></svg>
+          </div>
+          <h3 class="arch-title">AniSkip Intro & Outro</h3>
+          <p class="arch-desc">Direct AniSkip API integration providing timestamp markers to automatically skip openings and credits.</p>
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-icon-wrapper">
+            <svg class="icon" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <h3 class="arch-title">PostMessage API Event Bus</h3>
+          <p class="arch-desc">Bidirectional event protocol emitting ready, play, pause, timeupdate, and ended events for smooth integration with host web applications.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cluster Telemetry Section -->
+    <section class="section-wrapper" id="telemetry" aria-labelledby="telemetry-title">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title" id="telemetry-title">Cluster Telemetry</h2>
+          <p class="section-subtitle">Real-time status across edge media delivery nodes.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="pingTelemetry(true)" aria-label="Probe Cluster Nodes Now">Probe Now</button>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">🔄</div>
-        <h3 class="feature-title">Dual Catalog Sync</h3>
-        <p class="feature-desc">Native support for both AniList and MyAnimeList IDs with automatic metadata resolution and slug mapping.</p>
+      <div class="telemetry-grid">
+        <!-- Sora Edge -->
+        <div class="telemetry-card status-online" id="card-n1">
+          <div class="node-header">
+            <div class="node-title-group">
+              <div class="node-name">Sora Edge</div>
+              <div class="node-region">
+                <svg class="icon" style="width: 0.85rem; height: 0.85rem;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span>US-East (Virginia)</span>
+              </div>
+              <span class="node-host" id="host-n1">reanime.to</span>
+            </div>
+            <span class="node-status-badge online" id="pill-n1">
+              <span class="status-ping-dot"></span>
+              <span>Operational</span>
+            </span>
+          </div>
+
+          <div class="node-latency-box">
+            <div class="latency-label-group">
+              <span class="latency-label">Round-Trip Latency</span>
+              <div class="latency-signal" id="signal-n1">
+                <span class="signal-bar active green"></span>
+                <span class="signal-bar active green"></span>
+                <span class="signal-bar active green"></span>
+                <span class="signal-bar active green"></span>
+              </div>
+            </div>
+            <div class="latency-val-group">
+              <span class="latency-val" id="lat-n1">45</span>
+              <span class="latency-unit">ms</span>
+            </div>
+          </div>
+
+          <div class="node-footer-meta">
+            <span>Uptime: 99.98% SLA</span>
+            <span>TCP / TLS 1.3</span>
+          </div>
+        </div>
+
+        <!-- Neko CDN -->
+        <div class="telemetry-card status-online" id="card-n2">
+          <div class="node-header">
+            <div class="node-title-group">
+              <div class="node-name">Neko CDN</div>
+              <div class="node-region">
+                <svg class="icon" style="width: 0.85rem; height: 0.85rem;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span>EU-West (Frankfurt)</span>
+              </div>
+              <span class="node-host" id="host-n2">api.aniskip.com</span>
+            </div>
+            <span class="node-status-badge online" id="pill-n2">
+              <span class="status-ping-dot"></span>
+              <span>Operational</span>
+            </span>
+          </div>
+
+          <div class="node-latency-box">
+            <div class="latency-label-group">
+              <span class="latency-label">Round-Trip Latency</span>
+              <div class="latency-signal" id="signal-n2">
+                <span class="signal-bar active green"></span>
+                <span class="signal-bar active green"></span>
+                <span class="signal-bar active green"></span>
+                <span class="signal-bar active green"></span>
+              </div>
+            </div>
+            <div class="latency-val-group">
+              <span class="latency-val" id="lat-n2">40</span>
+              <span class="latency-unit">ms</span>
+            </div>
+          </div>
+
+          <div class="node-footer-meta">
+            <span>Uptime: 99.95% SLA</span>
+            <span>TCP / TLS 1.3</span>
+          </div>
+        </div>
+
+        <!-- Zozo Edge -->
+        <div class="telemetry-card status-online" id="card-n3">
+          <div class="node-header">
+            <div class="node-title-group">
+              <div class="node-name">Zozo Edge</div>
+              <div class="node-region">
+                <svg class="icon" style="width: 0.85rem; height: 0.85rem;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span>AP-South (Singapore)</span>
+              </div>
+              <span class="node-host" id="host-n3">graphql.anilist.co</span>
+            </div>
+            <span class="node-status-badge online" id="pill-n3">
+              <span class="status-ping-dot"></span>
+              <span>Operational</span>
+            </span>
+          </div>
+
+          <div class="node-latency-box">
+            <div class="latency-label-group">
+              <span class="latency-label">Round-Trip Latency</span>
+              <div class="latency-signal" id="signal-n3">
+                <span class="signal-bar active green"></span>
+                <span class="signal-bar active green"></span>
+                <span class="signal-bar active green"></span>
+                <span class="signal-bar active green"></span>
+              </div>
+            </div>
+            <div class="latency-val-group">
+              <span class="latency-val" id="lat-n3">15</span>
+              <span class="latency-unit">ms</span>
+            </div>
+          </div>
+
+          <div class="node-footer-meta">
+            <span>Uptime: 99.99% SLA</span>
+            <span>TCP / TLS 1.3</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Developer Integration Section -->
+    <section class="section-wrapper" id="docs" aria-labelledby="docs-title">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title" id="docs-title">Developer Integration</h2>
+          <p class="section-subtitle">Embed AnimeXOsource_Owais video streams into any web application or portal.</p>
+        </div>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">🛡️</div>
-        <h3 class="feature-title">Private Origin Shield</h3>
-        <p class="feature-desc">Upstream CDN origins and raw server links remain protected behind our edge proxy. No scrapers or headless browsers exposed.</p>
+      <div class="tabs-header" role="tablist" aria-label="Documentation Formats">
+        <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchDocsTab('iframe', this)">Iframe Embed</button>
+        <button class="tab-btn" role="tab" aria-selected="false" onclick="switchDocsTab('react', this)">React / Next.js</button>
+        <button class="tab-btn" role="tab" aria-selected="false" onclick="switchDocsTab('api', this)">REST API</button>
+        <button class="tab-btn" role="tab" aria-selected="false" onclick="switchDocsTab('events', this)">PostMessage Events</button>
+        <button class="tab-btn" role="tab" aria-selected="false" onclick="switchDocsTab('selfhost', this)">Self-Hosting &amp; Deploy</button>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">⏩</div>
-        <h3 class="feature-title">Skip Intro & Outro</h3>
-        <p class="feature-desc">Interactive timeline markers with one-click skip triggers for opening theme songs and ending credits.</p>
+      <!-- Iframe Pane -->
+      <div class="tab-content active" id="pane-iframe" role="tabpanel">
+        <button class="copy-snippet-btn" id="copy-code-iframe" onclick="copySnippet('code-iframe', 'copy-code-iframe')" aria-label="Copy Iframe Code Snippet">Copy Code</button>
+        <pre class="code-block" id="code-iframe">&lt;!-- Drop-in AnimeXOsource_Owais Embed Player (HTML / WordPress / Webflow) --&gt;
+&lt;div style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000;"&gt;
+  &lt;iframe
+    src="http://127.0.0.1:8000/embed/ani/21/1?track=sub"
+    width="100%"
+    height="100%"
+    frameborder="0"
+    allowfullscreen
+    allow="autoplay; fullscreen; picture-in-picture"
+    referrerpolicy="no-referrer-when-downgrade"&gt;
+  &lt;/iframe&gt;
+&lt;/div&gt;
+
+&lt;!-- Route Options:
+  /embed/ani/:id/:episode   - By AniList numerical ID (e.g. 21 = One Piece)
+  /embed/mal/:id/:episode   - By MyAnimeList ID
+  /embed/:slug/:episode     - By anime slug or title query (e.g. one-piece-21)
+  
+Query Parameters:
+  ?track=sub | dub          - Default audio language track (default: sub)
+  ?player=hls | direct      - Adaptive HLS engine or direct link fallback
+--&gt;</pre>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">📡</div>
-        <h3 class="feature-title">PostMessage API</h3>
-        <p class="feature-desc">Full bidirectional event bus (`ready`, `play`, `pause`, `timeupdate`, `ended`) for smooth host application integration.</p>
+      <!-- React / Next.js Pane -->
+      <div class="tab-content" id="pane-react" role="tabpanel">
+        <button class="copy-snippet-btn" id="copy-code-react" onclick="copySnippet('code-react', 'copy-code-react')" aria-label="Copy React Code Snippet">Copy Code</button>
+        <pre class="code-block" id="code-react">import React, { useEffect, useRef } from "react";
+
+interface AnimePlayerProps {
+  id: number | string; // AniList ID (e.g. 21) or slug
+  episode?: number;
+  track?: "sub" | "dub";
+  onReady?: (server: string) => void;
+  onEnded?: () => void;
+  onTimeUpdate?: (currentTime: number, duration: number) => void;
+}
+
+export const AnimePlayer: React.FC&lt;AnimePlayerProps&gt; = ({
+  id,
+  episode = 1,
+  track = "sub",
+  onReady,
+  onEnded,
+  onTimeUpdate,
+}) => {
+  const iframeRef = useRef&lt;HTMLIFrameElement&gt;(null);
+
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.source !== "AnimeXOsource_Owais" || e.data?.type !== "yoru:event") return;
+      const { event, server, currentTime, duration } = e.data;
+
+      if (event === "ready") onReady?.(server);
+      if (event === "timeupdate") onTimeUpdate?.(currentTime, duration);
+      if (event === "ended") onEnded?.();
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [onReady, onEnded, onTimeUpdate]);
+
+  return (
+    &lt;div style={{ position: "relative", width: "100%", aspectRatio: "16/9", background: "#000" }}&gt;
+      &lt;iframe
+        ref={iframeRef}
+        src={`http://127.0.0.1:8000/embed/ani/${id}/${episode}?track=${track}`}
+        style={{ width: "100%", height: "100%", border: "none" }}
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowFullScreen
+        referrerPolicy="no-referrer-when-downgrade"
+      /&gt;
+    &lt;/div&gt;
+  );
+};</pre>
       </div>
-    </div>
-  </section>
 
-  <!-- Cluster Telemetry Section -->
-  <section class="content-section" id="telemetry">
-    <div class="section-head">
-      <div>
-        <h2 class="section-title">Cluster Telemetry</h2>
-        <p class="section-desc">Real-time status across edge media delivery servers.</p>
+      <!-- REST API Pane -->
+      <div class="tab-content" id="pane-api" role="tabpanel">
+        <button class="copy-snippet-btn" id="copy-code-api" onclick="copySnippet('code-api', 'copy-code-api')" aria-label="Copy API Code Snippet">Copy Code</button>
+        <pre class="code-block" id="code-api"># ========================================================
+# 1. Search Anime Catalog (AniList GraphQL Proxy)
+# ========================================================
+curl -X GET "http://127.0.0.1:8000/api/search?q=demon+slayer&perPage=5"
+
+# Response:
+# {
+#   "results": [
+#     { "anilistId": 101922, "title": "Demon Slayer", "format": "TV", "year": 2019, "score": 85 }
+#   ]
+# }
+
+# ========================================================
+# 2. Resolve Stream Manifests with 3-Node Failover & AniSkip
+# ========================================================
+curl -X GET "http://127.0.0.1:8000/api/stream/21/1?lang=sub"
+
+# Response:
+# {
+#   "sources": [
+#     { "server": "HD-2", "priority": 1, "url": "https://.../master.m3u8", "embed": "https://..." },
+#     { "server": "HD-1", "priority": 2, "url": "https://.../master.m3u8", "embed": "https://..." },
+#     { "server": "SD-1", "priority": 3, "url": "https://.../master.m3u8", "embed": "https://..." }
+#   ],
+#   "subtitles": [
+#     { "lang": "en", "label": "English", "url": "https://.../sub.vtt", "default": true }
+#   ],
+#   "skip": {
+#     "intro": { "start": 85.0, "end": 175.0 },
+#     "outro": { "start": 1350.0, "end": 1440.0 }
+#   }
+# }
+
+# ========================================================
+# 3. Cluster Telemetry & Node Health
+# ========================================================
+curl -X GET "http://127.0.0.1:8000/api/health"</pre>
       </div>
-      <button class="btn btn-secondary" onclick="pingTelemetry(true)">Probe Now ↻</button>
-    </div>
 
-    <div class="telemetry-card">
-      <table class="telemetry-table">
-        <thead>
-          <tr>
-            <th>CLUSTER NODE</th>
-            <th>REGION</th>
-            <th>STATUS</th>
-            <th>LATENCY</th>
-            <th>EDGE LOAD</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Sora Edge</strong></td>
-            <td>US-East (Virginia)</td>
-            <td id="pill-n1" style="color: #22c55e; font-weight: 600;">Operational</td>
-            <td id="lat-n1" class="mono">24ms</td>
-            <td class="mono">34%</td>
-          </tr>
-          <tr>
-            <td><strong>Neko CDN</strong></td>
-            <td>EU-West (Frankfurt)</td>
-            <td id="pill-n2" style="color: #22c55e; font-weight: 600;">Operational</td>
-            <td id="lat-n2" class="mono">38ms</td>
-            <td class="mono">42%</td>
-          </tr>
-          <tr>
-            <td><strong>Zozo Edge</strong></td>
-            <td>AP-South (Singapore)</td>
-            <td id="pill-n3" style="color: #22c55e; font-weight: 600;">Operational</td>
-            <td id="lat-n3" class="mono">52ms</td>
-            <td class="mono">28%</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+      <!-- Events Pane -->
+      <div class="tab-content" id="pane-events" role="tabpanel">
+        <button class="copy-snippet-btn" id="copy-code-events" onclick="copySnippet('code-events', 'copy-code-events')" aria-label="Copy Events Code Snippet">Copy Code</button>
+        <pre class="code-block" id="code-events">// Listen for player events inside your host application
+window.addEventListener("message", (event) => {
+  // Validate sender
+  if (event.data?.source !== "AnimeXOsource_Owais" || event.data?.type !== "yoru:event") return;
 
-  <!-- Developer Integration Section -->
-  <section class="content-section" id="docs">
-    <div class="section-head">
-      <div>
-        <h2 class="section-title">Developer Integration</h2>
-        <p class="section-desc">Embed AnimeXOsource_Owais video streams into your web application in seconds.</p>
-      </div>
-    </div>
+  const eventName = event.data.event;
+  const payload = event.data;
 
-    <div class="docs-tabs">
-      <button class="docs-tab-btn active" onclick="switchDocsTab('iframe', this)">Iframe Embed</button>
-      <button class="docs-tab-btn" onclick="switchDocsTab('sdk', this)">JavaScript SDK</button>
-      <button class="docs-tab-btn" onclick="switchDocsTab('api', this)">REST API</button>
-      <button class="docs-tab-btn" onclick="switchDocsTab('events', this)">PostMessage Events</button>
-    </div>
-
-    <!-- Iframe Pane -->
-    <div class="docs-pane active" id="pane-iframe">
-      <button class="copy-btn" id="copy-code-iframe" onclick="copySnippet('code-iframe', 'copy-code-iframe')">Copy Code</button>
-      <pre class="code-box" id="code-iframe">&lt;!-- Drop-in AnimeXOsource_Owais Embed Player --&gt;
-&lt;iframe
-  src="https://owais-anime-stream.onrender.com/embed/one-piece-xamk74/1?track=sub"
-  width="100%"
-  height="480"
-  frameborder="0"
-  allowfullscreen
-  allow="autoplay; fullscreen; picture-in-picture"&gt;
-&lt;/iframe&gt;</pre>
-    </div>
-
-    <!-- SDK Pane -->
-    <div class="docs-pane" id="pane-sdk">
-      <button class="copy-btn" id="copy-code-sdk" onclick="copySnippet('code-sdk', 'copy-code-sdk')">Copy Code</button>
-      <pre class="code-box" id="code-sdk">import { searchAnime, getServers, getStreamFromLink, mountHlsPlayer } from "./api-client.js";
-
-// 1. Discover servers
-const serverData = await getServers("one-piece-xamk74", 1);
-const server = serverData.sub[0] || serverData.dub[0];
-
-// 2. Resolve HLS stream
-const stream = await getStreamFromLink(server.dataLink);
-
-// 3. Attach to video element
-const video = document.querySelector("#player");
-mountHlsPlayer(video, stream.url, stream.subtitles);
-video.play();</pre>
-    </div>
-
-    <!-- REST API Pane -->
-    <div class="docs-pane" id="pane-api">
-      <button class="copy-btn" id="copy-code-api" onclick="copySnippet('code-api', 'copy-code-api')">Copy Code</button>
-      <pre class="code-box" id="code-api"># 1. Search anime
-curl "https://owais-anime-stream.onrender.com/search?q=demon+slayer&limit=5"
-
-# 2. Get playback servers for an episode
-curl "https://owais-anime-stream.onrender.com/servers/one-piece-xamk74/1"
-
-# 3. Resolve master.m3u8 directly from embed link
-curl "https://owais-anime-stream.onrender.com/stream/from-link?link=https://flixcloud.cc/e/abc123xyz?v=2"
-
-# 4. Health & cluster status
-curl "https://owais-anime-stream.onrender.com/health"</pre>
-    </div>
-
-    <!-- Events Pane -->
-    <div class="docs-pane" id="pane-events">
-      <button class="copy-btn" id="copy-code-events" onclick="copySnippet('code-events', 'copy-code-events')">Copy Code</button>
-      <pre class="code-box" id="code-events">window.addEventListener("message", (event) => {
-  if (event.data?.source !== "AnimeXOsource_Owais") return;
-
-  switch (event.data.type) {
+  switch (eventName) {
     case "ready":
-      console.log("Player ready on server:", event.data.server);
+      console.log(`Player initialized on cluster node: ${payload.server}`);
       break;
+
+    case "play":
+      console.log("User resumed playback");
+      break;
+
+    case "pause":
+      console.log("User paused playback");
+      break;
+
     case "timeupdate":
-      // Track playback progress
-      console.log("Current time:", event.data.currentTime);
+      // Save progress to your user database or localStorage
+      const progressPercent = (payload.currentTime / payload.duration) * 100;
+      console.log(`Watch progress: ${progressPercent.toFixed(1)}% (${payload.currentTime}s)`);
       break;
+
+    case "skip":
+      console.log(`Skipped ${payload.type} to timestamp: ${payload.to}s`);
+      break;
+
+    case "serverchange":
+      console.log(`User switched server node to: ${payload.server}`);
+      break;
+
+    case "failover":
+      console.warn(`Node ${payload.from} degraded. Auto-cascaded to: ${payload.to}`);
+      break;
+
     case "ended":
-      console.log("Episode ended, autoplay next!");
+      console.log("Episode finished! Autoplay next episode...");
+      // Example: advance episode in state:
+      // setEpisode(prev => prev + 1);
+      break;
+
+    case "error":
+      console.error(`Playback error on ${payload.server}: ${payload.message}`);
       break;
   }
 });</pre>
+      </div>
+
+      <!-- Self-Hosting Pane -->
+      <div class="tab-content" id="pane-selfhost" role="tabpanel">
+        <button class="copy-snippet-btn" id="copy-code-selfhost" onclick="copySnippet('code-selfhost', 'copy-code-selfhost')" aria-label="Copy Self-Host Snippet">Copy Code</button>
+        <pre class="code-block" id="code-selfhost"># ========================================================
+# Option A: Local Python & Node.js Run
+# ========================================================
+git clone https://github.com/greenman9909-cmd/owais-anime-stream.git
+cd ReAnime.to-API
+
+# 1. Install dependencies
+pip install -r requirements.txt
+npm install  # For WASM token resolver
+
+# 2. Start the service
+python -m uvicorn reanime.app:app --host 0.0.0.0 --port 8000
+
+# ========================================================
+# Option B: Docker Container
+# ========================================================
+docker build -t animexo-source .
+docker run -d -p 8000:8000 --name animexo animexo-source
+
+# ========================================================
+# Option C: 1-Click Render.com Blueprint
+# ========================================================
+# 1. Connect this repo in Render Dashboard -> New Blueprint
+# 2. Render reads render.yaml and deploys with Python 3.11 + Node.js
+# 3. Set environment variable:
+#    SHIELD_SECRET = &lt;random-32-byte-hex&gt;</pre>
+      </div>
+    </section>
+  </main>
+
+  <!-- Legal Modals -->
+  <!-- Privacy Policy Modal -->
+  <div class="modal-backdrop" id="modal-privacy" role="dialog" aria-modal="true" aria-labelledby="privacy-title" onclick="if(event.target === this) closeModal('modal-privacy')">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="privacy-title">Privacy Policy</h3>
+        <button class="modal-close-btn" onclick="closeModal('modal-privacy')" aria-label="Close Privacy Policy">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h4>1. Zero Personal Data Collection</h4>
+        <p>AnimeXOsource_Owais is a privacy-first, open-source software project. We do not collect, store, sell, or transmit any personally identifiable information (PII), names, email addresses, IP logs, or viewing histories.</p>
+        
+        <h4>2. Client-Side Storage Only</h4>
+        <p>This website uses client-side <code>localStorage</code> strictly to remember your active player volume, track language preference (sub vs. dub), and consent status. No third-party tracking cookies, web beacons, or advertising trackers are used.</p>
+
+        <h4>3. Upstream Metadata Requests</h4>
+        <p>When searching for anime titles or resolving stream manifests, requests are proxied directly to public APIs (such as AniList GraphQL and AniSkip). Your interaction with these third-party endpoints is subject to their standard network policies.</p>
+
+        <h4>4. Open Source Transparency</h4>
+        <p>The entire source code is publicly auditable on GitHub. You are free to inspect network operations or host your own private instance.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-privacy')">Close</button>
+      </div>
     </div>
-  </section>
+  </div>
+
+  <!-- Terms & Conditions Modal -->
+  <div class="modal-backdrop" id="modal-terms" role="dialog" aria-modal="true" aria-labelledby="terms-title" onclick="if(event.target === this) closeModal('modal-terms')">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="terms-title">Terms &amp; Conditions</h3>
+        <button class="modal-close-btn" onclick="closeModal('modal-terms')" aria-label="Close Terms and Conditions">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h4>1. Open Source License</h4>
+        <p>AnimeXOsource_Owais is licensed under the MIT License. The software is provided "as is", without warranty of any kind, express or implied.</p>
+
+        <h4>2. Non-Hosting &amp; Educational Notice</h4>
+        <p>AnimeXOsource_Owais does not host, upload, store, or manage any video files or copyrighted media streams on its servers. The software operates purely as an open-source technical proof-of-concept for metadata querying and HLS protocol handling.</p>
+
+        <h4>3. Third-Party Content &amp; Trademarks</h4>
+        <p>All anime titles, artwork, character names, and trademarks displayed in catalog previews belong to their respective copyright owners and production studios. Metadata is retrieved from the community-driven AniList API under fair use principles.</p>
+
+        <h4>4. Permitted Use</h4>
+        <p>Users and self-hosters are solely responsible for compliance with their local regulations regarding media streaming and intellectual property laws.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-terms')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Refund & Non-Commercial Policy Modal -->
+  <div class="modal-backdrop" id="modal-refund" role="dialog" aria-modal="true" aria-labelledby="refund-title" onclick="if(event.target === this) closeModal('modal-refund')">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="refund-title">Refund &amp; Non-Commercial Policy</h3>
+        <button class="modal-close-btn" onclick="closeModal('modal-refund')" aria-label="Close Refund Policy">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h4>1. 100% Free Software</h4>
+        <p>AnimeXOsource_Owais is a completely free, non-commercial open-source project. We do not sell subscriptions, user memberships, or premium tiers, nor do we process commercial payments.</p>
+
+        <h4>2. No Financial Transactions</h4>
+        <p>Because no payments, billing information, or monetary transactions are ever accepted by this service, refund mechanisms do not apply.</p>
+
+        <h4>3. Scam Warning</h4>
+        <p>If any third-party website or entity attempts to charge you for access to AnimeXOsource_Owais or claims to be an authorized billing representative, be advised that they are fraudulent and unauthorized.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-refund')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cookie Policy Modal -->
+  <div class="modal-backdrop" id="modal-cookie" role="dialog" aria-modal="true" aria-labelledby="cookie-title" onclick="if(event.target === this) closeModal('modal-cookie')">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="cookie-title">Cookie &amp; Local Storage Policy</h3>
+        <button class="modal-close-btn" onclick="closeModal('modal-cookie')" aria-label="Close Cookie Policy">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h4>1. How We Use Storage</h4>
+        <p>We do not use tracking cookies, marketing pixels, or third-party profiling cookies. We exclusively use browser <code>localStorage</code> for strictly necessary technical preferences:</p>
+        <ul style="margin-left: 1.25rem; margin-bottom: 0.85rem;">
+          <li><strong>Player Volume:</strong> Saves your audio volume level between video changes.</li>
+          <li><strong>Track Preference:</strong> Remembers your selection of subbed vs. dubbed audio.</li>
+          <li><strong>Consent Acknowledgment:</strong> Records that you have dismissed the notice banner.</li>
+        </ul>
+
+        <h4>2. Managing Your Storage</h4>
+        <p>You can clear your browser's local storage or cookies at any time via your browser settings without affecting the functionality of the player.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-cookie')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cookie Consent Banner -->
+  <div class="cookie-banner" id="cookie-banner" role="region" aria-label="Storage Consent Notice">
+    <div class="cookie-text">
+      This open-source platform uses local storage strictly for essential player settings (audio volume and track preferences). We use zero tracking or advertising cookies. Read our <a href="javascript:void(0)" onclick="openModal('modal-cookie')">Cookie Policy</a>.
+    </div>
+    <div class="cookie-actions">
+      <button class="btn btn-primary" onclick="acceptCookieConsent()">Acknowledge</button>
+    </div>
+  </div>
 
   <!-- Footer -->
   <footer>
-    <p>AnimeXOsource_Owais • Clean Anime Video Embed Infrastructure • Powered by ReAnime API & WASM Resolver</p>
-    <p style="margin-top: 0.5rem; font-size: 0.75rem;">Open-source MIT License • 2026</p>
+    <div class="footer-links">
+      <button onclick="openModal('modal-privacy')">Privacy Policy</button>
+      <button onclick="openModal('modal-terms')">Terms of Service</button>
+      <button onclick="openModal('modal-refund')">Refund Policy</button>
+      <button onclick="openModal('modal-cookie')">Cookie Policy</button>
+      <a href="https://github.com/greenman9909-cmd/owais-anime-stream" target="_blank" rel="noopener noreferrer">GitHub Source</a>
+    </div>
+    <p>AnimeXOsource_Owais &bull; Open-Source Anime Video Embed Infrastructure &bull; MIT License 2026</p>
+    <p class="footer-meta">
+      Non-commercial developer reference platform. Video streams and metadata are resolved dynamically via external APIs. All trademarks and copyrighted materials belong to their respective rights holders.
+    </p>
   </footer>
 
   <script src="/static/app.js"></script>
 </body>
 </html>
+
