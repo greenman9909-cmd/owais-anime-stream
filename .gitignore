@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+.DS_Store
+node_modules/
+node/.package-lock.json
+node/node_modules/
+.pytest_cache/
