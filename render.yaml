@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: owais-anime-stream
+    name: owais-anime-stream-open
     env: docker
     plan: free
     dockerfilePath: ./Dockerfile

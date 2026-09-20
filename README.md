@@ -1,221 +1,213 @@
 # AnimeXOsource_Owais
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
-A high-speed, open-source anime video embed and playback infrastructure platform modeled after **[Anixo](https://anixo.buzz/)**. Built with a unified **FastAPI** backend, ad-free **HLS.js 1.5.15 standalone embed player** featuring automated 3-server failover (`HD-2` &rarr; `HD-1` &rarr; `SD-1`), frame-accurate WebVTT subtitle synchronization with **±10s offset calibration**, interactive **AniSkip intro/outro triggers**, HMAC-SHA256 origin shielding, and real-time edge cluster telemetry.
+<p align="center">
+  <strong>Open-source anime video embed infrastructure with a live public demo.</strong><br />
+  <sub>FastAPI · HLS.js · AniList · AniSkip · WebSockets · Docker · Render</sub>
+</p>
 
----
+<p align="center">
+  <a href="https://owais-anime-stream-open.onrender.com/"><img src="https://img.shields.io/badge/LIVE%20DEMO-Open%20Studio-f43f5e?style=for-the-badge" alt="Open the live studio" /></a>
+  <a href="https://owais-anime-stream-open.onrender.com/docs"><img src="https://img.shields.io/badge/API-Swagger%20Docs-111827?style=for-the-badge" alt="Open live API documentation" /></a>
+  <a href="https://github.com/greenman9909-cmd/owais-anime-stream/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-39d98a?style=for-the-badge" alt="MIT license" /></a>
+  <a href="https://ko-fi.com/yorusayano"><img src="https://img.shields.io/badge/Support-Ko--fi-ff5e5b?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support the project on Ko-fi" /></a>
+</p>
 
-## Table of Contents
+AnimeXOsource_Owais is an open-source FastAPI platform for catalog discovery, browser-based video embeds, stream-provider integration, subtitle metadata, AniSkip markers, HMAC-signed URLs, and cluster telemetry. The repository is designed to be self-hosted and provider-configurable rather than tied to one deployment.
 
-- [Key Features](#key-features)
-- [System Architecture](#system-architecture)
-- [Web Platform & Studio Console](#web-platform--studio-console)
-- [Embed Player Engine](#embed-player-engine)
-- [Developer Integration](#developer-integration)
-- [API Reference](#api-reference)
-- [Local Setup & Verification](#local-setup--verification)
-- [Environment Variables](#environment-variables)
-- [Deployment on Render](#deployment-on-render)
-- [Contributing](#contributing)
-- [License](#license)
+> **Live testing:** Open the [public studio](https://owais-anime-stream-open.onrender.com/) and test the catalog, Studio Console, telemetry, documentation, and embed generator directly. The hosted free-tier service may need a few seconds to wake up after inactivity.
 
----
+## Preview
 
-## Key Features
+![AnimeXOsource_Owais studio preview](docs/assets/studio-preview.png)
 
-- **Studio Console & Embed Playground**: Interactive web console supporting anime slugs, AniList numerical IDs, and MyAnimeList IDs. Generates 1-click playable URLs and responsive iframe embed snippets.
-- **Automated 3-Server Failover**: Cascades between Sora Edge, Neko CDN, and Zozo Edge clusters (`HD-2` &rarr; `HD-1` &rarr; `SD-1`) for uninterrupted playback during upstream hiccups.
-- **Frame-Accurate Subtitles**: Native WebVTT multi-language subtitle track synchronization with interactive `±10.0s` offset calibration directly in player settings.
-- **Interactive AniSkip Markers**: Automatically queries opening themes (`op`) and ending credits (`ed`), rendering one-click "Skip Intro" and "Skip Credits" floating buttons.
-- **HMAC-SHA256 Origin Shield**: Edge proxy protection securing stream links with rotating cryptographic signatures and unix expiration timestamps (`?t=<token>&e=<expiry>`).
-- **Bidirectional PostMessage Bus**: Standardized `yoru:event` protocol (`ready`, `play`, `pause`, `timeupdate`, `ended`, `failover`, `serverchange`) for host site integration.
-- **Edge Cluster Telemetry**: Live ping probing across global delivery nodes (US-East, EU-West, AP-South).
+*The live Studio Console provides catalog ID selection, player configuration, embed-code generation, and cluster telemetry in one place.*
 
----
+![AnimeXOsource_Owais catalog preview](docs/assets/catalog-preview.png)
 
-## System Architecture
+*Bundled poster artwork used by the open-source catalog and local fallback views.*
 
-```
-                                    +-----------------------------------------+
-                                    |     Host Application / Web Browser      |
-                                    +--------------------+--------------------+
-                                                         |
-                                             Iframe Embed / REST API
-                                                         v
-+---------------------------------------------------------------------------------------------------------------+
-|  AnimeXOsource_Owais (FastAPI Single Process)                                                                 |
-|                                                                                                               |
-|   GET /                  GET /embed/...                  GET /api/search           GET /api/stream            |
-|   (Studio Console)       (HLS.js Embed Player)           (AniList GraphQL)         (Stream Resolver & Shield) |
-|         |                      |                                 |                             |              |
-|         v                      v                                 v                             v              |
-|  templates/index.html   templates/embed.html             reanime/anilist.py            reanime/resolver.py    |
-|  static/app.js          static/embed.js                                                reanime/shield.py      |
-|                                                                                        reanime/aniskip.py     |
-+---------------------------------------------------------------------------------------------------------------+
-                                                                                                 |
-                                                               +---------------------------------+
-                                                               |
-                                                               v
-                                                +------------------------------+
-                                                | Upstream Resolver & Clusters |
-                                                |   HD-2  •  HD-1  •  SD-1     |
-                                                +------------------------------+
+The public embed player is also available at [`/embed/ani/21/1?track=sub`](https://owais-anime-stream-open.onrender.com/embed/ani/21/1?track=sub). Provider playback depends on the configured, authorized resolver and on the upstream provider accepting the browser request.
+
+## What the project includes
+
+- **Studio Console:** Test anime IDs, slugs, episode numbers, audio tracks, and player modes, then copy an iframe URL.
+- **Live catalog:** Search AniList GraphQL metadata and inspect title, artwork, year, format, score, and episode information.
+- **Embed player:** Use direct iframe routes for AniList IDs, MyAnimeList IDs, or slugs.
+- **Provider fallback:** Return browser-mountable `dataLink` embed sources when a provider blocks server-side token extraction.
+- **Playback metadata:** Return source priority, embed URLs, subtitles, signed URLs, and AniSkip intro/outro markers.
+- **Telemetry:** Probe configured edge hosts and expose service health through `/api/health`.
+- **Developer surface:** Swagger UI, OpenAPI JSON, iframe examples, postMessage events, and a deployment blueprint.
+- **Container deployment:** Run the same Python 3.11 and Node.js bridge in Docker locally or on Render.
+
+## System architecture
+
+```text
+Browser / host website
+        │
+        ├── Studio Console
+        ├── iframe embed routes
+        └── REST + postMessage integration
+                    │
+                    ▼
+        FastAPI application (port 8000)
+        ├── AniList catalog client
+        ├── stream resolver and browser fallback
+        ├── AniSkip marker client
+        ├── HMAC origin shield
+        └── cluster telemetry
+                    │
+                    ├── Node.js decryption bridge
+                    └── configured authorized resolver/provider
 ```
 
----
+## Try the live API
 
-## Web Platform & Studio Console
+The deployed service is `https://owais-anime-stream-open.onrender.com`.
 
-Visiting `/` opens the dark cyberpunk studio console:
-1. **Studio Console**: Test stream playback in real-time, toggle between sub/dub, select anime by slug or AniList ID, and copy ready-to-use embed code.
-2. **Stream Engine Test Manifests**: Preset benchmarks (One Piece, Demon Slayer, Jujutsu Kaisen, Attack on Titan, Chainsaw Man, Frieren) that mount directly into the studio player with one click.
-3. **Live Search**: Debounced 300ms real-time catalog search querying AniList GraphQL.
-4. **Cluster Telemetry**: Live ping probe table monitoring Sora Edge, Neko CDN, and Zozo Edge nodes with 30s auto-refresh.
-5. **Developer Documentation**: Interactive code tabs for Iframe Embeds, JavaScript SDK, REST API, and PostMessage event listeners.
+```bash
+# Service health and edge telemetry
+curl https://owais-anime-stream-open.onrender.com/api/health
 
----
+# Live catalog search
+curl 'https://owais-anime-stream-open.onrender.com/api/search?q=one%20piece&perPage=6'
 
-## Embed Player Engine
+# Stream metadata and browser-mountable provider sources
+curl 'https://owais-anime-stream-open.onrender.com/api/stream/21/1?lang=sub'
 
-Embed ad-free video streams into any third-party website or application using standard iframes:
+# Generate an iframe snippet
+curl 'https://owais-anime-stream-open.onrender.com/api/embed-code?slug=ani/21&ep=1'
+```
 
-### Route Formats
+The live service exposes interactive documentation at [`/docs`](https://owais-anime-stream-open.onrender.com/docs) and its machine-readable contract at [`/openapi.json`](https://owais-anime-stream-open.onrender.com/openapi.json).
+
+## Embed it in another website
 
 ```html
-<!-- Embed by Anime Slug -->
-<iframe src="https://owais-anime-stream.onrender.com/embed/one-piece-xamk74/1?track=sub"
-  width="100%" height="480" frameborder="0" allowfullscreen allow="autoplay; fullscreen; picture-in-picture">
-</iframe>
-
-<!-- Embed by AniList ID -->
-<iframe src="https://owais-anime-stream.onrender.com/embed/ani/21/1?track=sub"
-  width="100%" height="480" frameborder="0" allowfullscreen allow="autoplay; fullscreen; picture-in-picture">
-</iframe>
-
-<!-- Embed by MyAnimeList ID -->
-<iframe src="https://owais-anime-stream.onrender.com/embed/mal/21/1?track=dub"
-  width="100%" height="480" frameborder="0" allowfullscreen allow="autoplay; fullscreen; picture-in-picture">
+<iframe
+  src="https://owais-anime-stream-open.onrender.com/embed/ani/21/1?track=sub"
+  width="100%"
+  height="600"
+  frameborder="0"
+  allow="autoplay; fullscreen; picture-in-picture"
+  allowfullscreen
+  title="AnimeXOsource_Owais player">
 </iframe>
 ```
 
----
+Supported route formats are:
 
-## Developer Integration
+```text
+/embed/ani/{anilist_id}/{episode}
+/embed/mal/{mal_id}/{episode}
+/embed/{slug}/{episode}
+```
 
-### PostMessage Event Bus (`yoru:event`)
+See the complete examples in [`docs/EMBEDDING.md`](docs/EMBEDDING.md) and the implementation notes in [`docs/IMPLEMENTATION_GUIDE.md`](docs/IMPLEMENTATION_GUIDE.md).
 
-The embed player broadcasts playback events to the parent window:
+## Listen for player events
+
+The player communicates with its parent page through `window.postMessage` using the `yoru:event` protocol.
 
 ```javascript
-window.addEventListener("message", (event) => {
-  if (event.data?.source !== "AnimeXOsource_Owais" && event.data?.type !== "yoru:event") return;
+window.addEventListener('message', (event) => {
+  if (event.data?.source !== 'AnimeXOsource_Owais') return;
 
-  const type = event.data.event || event.data.type;
-  switch (type) {
-    case "ready":
-      console.log("Player mounted successfully on server:", event.data.server);
-      break;
-    case "play":
-      console.log("Stream playback started");
-      break;
-    case "timeupdate":
-      console.log("Progress:", event.data.currentTime, "/", event.data.duration);
-      break;
-    case "failover":
-      console.warn("Failover triggered:", event.data.from, "->", event.data.to);
-      break;
-    case "ended":
-      console.log("Episode ended. Autoplay next episode!");
-      break;
-  }
+  const { event: name, currentTime, duration, server } = event.data;
+  if (name === 'ready') console.log('Player ready on', server);
+  if (name === 'timeupdate') console.log(currentTime, duration);
+  if (name === 'failover') console.log('Provider failover requested');
 });
 ```
 
----
+## Run locally
 
-## API Reference
-
-| Method | Path | Description |
-| :--- | :--- | :--- |
-| `GET` | `/` | AnimeXOsource_Owais Web Platform & Studio Console |
-| `GET` | `/embed/{slug}/{episode}` | Standalone Hls.js embed player |
-| `GET` | `/embed/ani/{id}/{episode}` | Embed player by AniList numerical ID |
-| `GET` | `/embed/mal/{id}/{episode}` | Embed player by MyAnimeList numerical ID |
-| `GET` | `/api` | Service JSON root metadata |
-| `GET` | `/api/search` | AniList GraphQL catalog search proxy |
-| `GET` | `/api/anime/{slug}` | Single anime metadata and episode listings |
-| `GET` | `/api/stream/{slug}/{ep}` | Stream resolution with 3-node failover, subtitles, and AniSkip |
-| `GET` | `/api/health` | Edge telemetry and cluster health status |
-| `GET` | `/api/embed-code` | Responsive iframe and direct URL generator |
-| `POST` | `/api/shield/validate` | HMAC-SHA256 origin shield token validation |
-
----
-
-## Local Setup & Verification
+Requirements are Python 3.11+, Node.js, npm, and optionally Docker.
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/greenman9909-cmd/owais-anime-stream.git
 cd owais-anime-stream
-
-# 2. Install dependencies
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-
-# 3. Copy environment configuration
+npm install --prefix node
 cp .env.example .env
-
-# 4. Run automated test suite
 python -m pytest -v
-
-# 5. Boot local development server
 python -m uvicorn reanime.app:app --host 127.0.0.1 --port 8000
 ```
 
-Open your browser at **`http://127.0.0.1:8000`** to access the web platform.
-Swagger interactive API docs are available at **`http://127.0.0.1:8000/docs`**.
+Open [`http://127.0.0.1:8000`](http://127.0.0.1:8000) for the studio and [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs) for Swagger UI.
 
----
+### Run with Docker
 
-## Environment Variables
+```bash
+docker build -t animexo-player .
+docker run --rm -p 8000:8000 --env-file .env animexo-player
+```
 
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `PORT` | `8000` | Port for local or production HTTP server |
-| `HOST` | `0.0.0.0` | Host bind address |
-| `RESOLVER_BASE` | `""` | Base URL of stream resolver (empty returns 503 for local dev) |
-| `RESOLVER_KEY` | `""` | Bearer auth key for stream resolver |
-| `SHIELD_SECRET` | `"change-me"` | HMAC secret key for URL signing and origin shielding |
-| `STUDIO_TOKEN` | `""` | Optional Bearer token to protect the studio landing page |
-| `SORA_HOST` | `""` | US-East edge cluster host domain |
-| `NEKO_HOST` | `""` | EU-West CDN edge host domain |
-| `ZOZO_HOST` | `""` | AP-South edge host domain |
+## Render deployment
 
----
+The repository includes [`render.yaml`](render.yaml) and [`Dockerfile`](Dockerfile). The current public service is deployed from `main` as a Docker web service on Render with automatic deploys enabled.
 
-## Deployment on Render
+For a new deployment:
 
-This repository includes a pre-configured `render.yaml` Blueprint.
+1. Open [Render Dashboard](https://dashboard.render.com/).
+2. Choose **New + → Blueprint**.
+3. Select this repository and the `main` branch.
+4. Keep the Docker runtime and `/api/health` health check.
+5. Set a unique `SHIELD_SECRET` and add an authorized `RESOLVER_BASE` and optional `RESOLVER_KEY` when a provider resolver is available.
+6. Deploy, then test `/`, `/api/health`, `/docs`, and an `/embed/...` route.
 
-### 1-Click Render Deploy
+The step-by-step deployment reference is in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
-1. Push your changes to GitHub.
-2. Go to [Render Dashboard](https://dashboard.render.com/) &rarr; **New +** &rarr; **Blueprint**.
-3. Select this repository.
-4. Render automatically provisions the web service with all dependencies.
+## Environment variables
 
----
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `PORT` | No | HTTP port; Render supplies this automatically. The Docker default is `8000`. |
+| `SHIELD_SECRET` | Recommended | Random secret used for HMAC URL signing. |
+| `RESOLVER_BASE` | No | Authorized external resolver base URL. Leave blank to use the built-in bridge. |
+| `RESOLVER_KEY` | No | Bearer key for a private resolver service. |
+| `STUDIO_TOKEN` | No | Optional bearer token for protected studio access. |
+| `SORA_HOST` | No | Optional US-East telemetry host. |
+| `NEKO_HOST` | No | Optional EU-West telemetry host. |
+| `ZOZO_HOST` | No | Optional AP-South telemetry host. |
+
+Do not commit `.env`, provider cookies, access tokens, or private resolver credentials.
+
+## Repository map
+
+```text
+Dockerfile                  Production Python + Node container
+render.yaml                 Render Blueprint
+reanime/app.py              FastAPI routes and application setup
+reanime/resolver.py         Provider resolution and direct-embed fallback
+reanime/static/embed.js     Browser player and provider-frame mounting
+reanime/templates/          Studio and embed HTML templates
+reanime/anilist.py          AniList metadata client
+reanime/aniskip.py          AniSkip marker client
+reanime/shield.py           HMAC URL signing and validation
+node/                       Node.js decryption bridge
+frontend-integration/       Small client integration examples
+docs/                       API, embedding, deployment, and implementation docs
+tests/                      Resolver, shield, and API tests
+```
+
+## Open-source boundaries
+
+This project is released for self-hosting, experimentation, and authorized integrations. You are responsible for the media sources, provider permissions, copyright compliance, privacy notices, and local legal requirements that apply to your deployment. The repository does not include private provider credentials or claim ownership of third-party media.
 
 ## Contributing
 
-Pull requests and issues are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
+Issues and pull requests are welcome. Please keep provider integrations configurable, add tests for behavior changes, update the relevant documentation, and never commit credentials, cookies, scraped private data, or generated local databases. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening a pull request.
 
----
+## Support the project
+
+If AnimeXOsource_Owais helps you build or learn, optional support is available through [Ko-fi](https://ko-fi.com/yorusayano). The project remains open source under the MIT License whether or not you contribute financially.
+
+<p align="center">
+  <a href="https://ko-fi.com/yorusayano"><img src="https://storage.ko-fi.com/cdn/kofi3.png?v=3" width="190" alt="Support AnimeXOsource_Owais on Ko-fi" /></a>
+</p>
 
 ## License
 
-Released under the **MIT License**. See [LICENSE](LICENSE) for full text.
-
-Copyright (c) 2026 AnimeXOsource_Owais contributors.
+Released under the [MIT License](LICENSE). Copyright (c) 2026 AnimeXOsource_Owais contributors.
