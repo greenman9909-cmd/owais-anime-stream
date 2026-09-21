@@ -15,6 +15,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 public class MainActivity extends Activity {
     private WebView webView;
@@ -23,6 +24,7 @@ public class MainActivity extends Activity {
     private View customView;
     private WebChromeClient.CustomViewCallback customViewCallback;
     private int previousOrientation;
+    private LocalAnimeBackend localBackend;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +69,46 @@ public class MainActivity extends Activity {
 
         setContentView(root);
         configureWebView();
-        webView.loadUrl("file:///android_asset/app/index.html");
+        startLocalBackend();
+    }
+
+    private void startLocalBackend() {
+        progressBar.setVisibility(View.VISIBLE);
+
+        new Thread(() -> {
+            try {
+                localBackend = new LocalAnimeBackend(this);
+                String localUrl = localBackend.start();
+
+                runOnUiThread(() -> webView.loadUrl(localUrl + "/"));
+            } catch (Exception ex) {
+                runOnUiThread(() -> showStartupError(
+                    "Local backend could not start.\n\n" +
+                    (ex.getMessage() == null ? "Unknown error" : ex.getMessage())
+                ));
+            }
+        }, "owais-backend-boot").start();
+    }
+
+    private void showStartupError(String message) {
+        progressBar.setVisibility(View.GONE);
+        webView.setVisibility(View.GONE);
+
+        TextView error = new TextView(this);
+        error.setText(message);
+        error.setTextColor(Color.rgb(248, 250, 252));
+        error.setTextSize(16);
+        error.setGravity(android.view.Gravity.CENTER);
+        error.setPadding(dp(28), dp(28), dp(28), dp(28));
+        error.setBackgroundColor(Color.rgb(5, 7, 11));
+
+        root.addView(
+            error,
+            new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        );
     }
 
     @SuppressWarnings("deprecation")
@@ -83,13 +124,11 @@ public class MainActivity extends Activity {
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
         settings.setAllowContentAccess(false);
-        settings.setAllowFileAccess(true);
-        settings.setAllowFileAccessFromFileURLs(true);
-        settings.setAllowUniversalAccessFromFileURLs(true);
+        settings.setAllowFileAccess(false);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
         settings.setUserAgentString(
-            settings.getUserAgentString() + " OwaisAnimeAndroid/1.0"
+            settings.getUserAgentString() + " OwaisAnimeAndroid/2.0"
         );
 
         webView.setWebViewClient(new WebViewClient() {
@@ -102,7 +141,6 @@ public class MainActivity extends Activity {
                 return !(
                     "http".equals(scheme)
                     || "https".equals(scheme)
-                    || "file".equals(scheme)
                     || "about".equals(scheme)
                 );
             }
@@ -241,6 +279,11 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (localBackend != null) {
+            localBackend.stop();
+            localBackend = null;
+        }
+
         if (webView != null) {
             webView.loadUrl("about:blank");
             webView.stopLoading();
@@ -248,6 +291,7 @@ public class MainActivity extends Activity {
             webView.setWebViewClient(null);
             webView.destroy();
         }
+
         super.onDestroy();
     }
 
