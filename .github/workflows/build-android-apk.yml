@@ -51,6 +51,16 @@ jobs:
             git push origin main
           fi
 
+      - name: Publish GitHub Release APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view latest-apk >/dev/null 2>&1; then
+            gh release upload latest-apk OWAIS-Anime.apk --clobber
+          else
+            gh release create latest-apk OWAIS-Anime.apk               --title "OWAIS Anime Android"               --notes "Latest installable Android APK. Built automatically from main."
+          fi
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
