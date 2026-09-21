@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "android/**"
+      - "third_party/slopmonster/**"
       - ".github/workflows/build-android-apk.yml"
 
 permissions:
@@ -18,6 +19,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -32,6 +38,12 @@ jobs:
 
       - name: Check bundled app JavaScript
         run: node --check android/app/src/main/assets/app/app.js
+
+      - name: SlopMonster regression tests
+        run: python3 third_party/slopmonster/test_deslop.py
+
+      - name: Lint visible APK copy with SlopMonster
+        run: python3 third_party/slopmonster/deslop.py android/app/src/main/assets/app/index.html --allow-proof
 
       - name: Build debug APK
         run: gradle -p android assembleDebug --no-daemon
