@@ -148,7 +148,7 @@ public class MainActivity extends Activity {
                 setRequestedOrientation(
                     ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 );
-                setImmersive(true);
+                setSystemBarsImmersive(true);
             }
 
             @Override
@@ -158,7 +158,7 @@ public class MainActivity extends Activity {
         });
     }
 
-    private void setImmersive(boolean enabled) {
+    private void setSystemBarsImmersive(boolean enabled) {
         if (android.os.Build.VERSION.SDK_INT >= 30) {
             WindowInsetsController controller = getWindow().getInsetsController();
             if (controller != null) {
@@ -203,7 +203,7 @@ public class MainActivity extends Activity {
         }
 
         setRequestedOrientation(previousOrientation);
-        setImmersive(false);
+        setSystemBarsImmersive(false);
     }
 
     @Override
