@@ -39,6 +39,12 @@ jobs:
       - name: Check bundled app JavaScript
         run: node --check android/app/src/main/assets/app/app.js
 
+      - name: Verify v4 UI marker
+        run: |
+          grep -q "v4.0" android/app/src/main/assets/app/index.html
+          grep -q "Browse anime" android/app/src/main/assets/app/app.js
+          grep -q "Popular This Week" android/app/src/main/assets/app/app.js
+
       - name: SlopMonster regression tests
         run: python3 third_party/slopmonster/test_deslop.py
 
@@ -48,34 +54,34 @@ jobs:
       - name: Build debug APK
         run: gradle -p android assembleDebug --no-daemon
 
-      - name: Publish APK to repository root
+      - name: Publish versioned APK to repository root
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin main
           git reset --hard origin/main
-          cp android/app/build/outputs/apk/debug/app-debug.apk OWAIS-Anime.apk
-          git add OWAIS-Anime.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk OWAIS-Anime-v4.apk
+          git add OWAIS-Anime-v4.apk
           if git diff --cached --quiet; then
             echo "APK unchanged"
           else
-            git commit -m "build: publish OWAIS Anime APK"
+            git commit -m "build: publish OWAIS Anime v4 APK"
             git push origin main
           fi
 
-      - name: Publish GitHub Release APK
+      - name: Publish OWAIS Anime v4 release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view latest-apk >/dev/null 2>&1; then
-            gh release upload latest-apk OWAIS-Anime.apk --clobber
+          if gh release view v4-apk >/dev/null 2>&1; then
+            gh release upload v4-apk OWAIS-Anime-v4.apk --clobber
           else
-            gh release create latest-apk OWAIS-Anime.apk               --title "OWAIS Anime Android"               --notes "Latest installable Android APK. Built automatically from main."
+            gh release create v4-apk OWAIS-Anime-v4.apk               --title "OWAIS Anime v4 Android"               --notes "OWAIS Anime v4.0.0 — redesigned Android UI with native Media3 playback and on-device localhost backend."
           fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OWAIS-Anime-Android
+          name: OWAIS-Anime-v4-Android
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
