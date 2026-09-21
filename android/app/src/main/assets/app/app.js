@@ -599,11 +599,9 @@ async function openPlayer(id, episode) {
       return;
     }
 
-    playerScreen.classList.add("hidden");
-    bottomNav.classList.remove("hidden");
-    document.body.style.overflow = "";
-    showToast("Choose a local source once, then Play works automatically");
-    openSourceSettings();
+    playerUnavailable.classList.remove("hidden");
+    playerUnavailableText.textContent =
+      "No playable source was returned for this episode. Try another episode or check back later.";
   } catch (error) {
     playerLoading.classList.add("hidden");
     playerUnavailable.classList.remove("hidden");
@@ -637,7 +635,7 @@ function loadLibrary() {
       '<span class="eyebrow">ONLY ON THIS DEVICE</span>' +
       '<h1 class="page-title">My List</h1>' +
       '<div class="library-actions">' +
-        '<button data-action="source-settings">Local Source</button>' +
+        '<button data-action="source-settings">Playback source</button>' +
         '<button data-action="clear-history">Clear Continue Watching</button>' +
       '</div>' +
       '<div id="libraryContent">' +
