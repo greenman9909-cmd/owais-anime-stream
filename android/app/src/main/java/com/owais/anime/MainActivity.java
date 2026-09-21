@@ -1,8 +1,10 @@
 package com.owais.anime;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,8 +18,11 @@ import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
+    private static final int REQUEST_NATIVE_PLAYER = 3001;
+
     private WebView webView;
     private ProgressBar progressBar;
     private FrameLayout root;
@@ -128,7 +133,7 @@ public class MainActivity extends Activity {
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
         settings.setUserAgentString(
-            settings.getUserAgentString() + " OwaisAnimeAndroid/2.0"
+            settings.getUserAgentString() + " OwaisAnimeAndroid/3.0"
         );
 
         webView.setWebViewClient(new WebViewClient() {
@@ -137,12 +142,39 @@ public class MainActivity extends Activity {
                 WebView view,
                 WebResourceRequest request
             ) {
-                String scheme = request.getUrl().getScheme();
-                return !(
-                    "http".equals(scheme)
-                    || "https".equals(scheme)
-                    || "about".equals(scheme)
-                );
+                Uri uri = request.getUrl();
+                String scheme = uri.getScheme();
+
+                if ("owais".equalsIgnoreCase(scheme)) {
+                    handleAppUri(uri);
+                    return true;
+                }
+
+                if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
+                    if (
+                        uri.getHost() != null
+                            && (
+                                "127.0.0.1".equals(uri.getHost())
+                                || "localhost".equalsIgnoreCase(uri.getHost())
+                            )
+                    ) {
+                        return false;
+                    }
+
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                    } catch (Exception ex) {
+                        Toast.makeText(
+                            MainActivity.this,
+                            "Could not open external link.",
+                            Toast.LENGTH_SHORT
+                        ).show();
+                    }
+
+                    return true;
+                }
+
+                return !"about".equalsIgnoreCase(scheme);
             }
 
             @Override
@@ -196,6 +228,82 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void handleAppUri(Uri uri) {
+        String host = uri.getHost();
+
+        if ("play".equalsIgnoreCase(host)) {
+            launchNativePlayer(uri);
+            return;
+        }
+
+        if ("external".equalsIgnoreCase(host)) {
+            String url = uri.getQueryParameter("url");
+            if (url == null || url.isBlank()) {
+                return;
+            }
+
+            try {
+                startActivity(
+                    new Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(url)
+                    )
+                );
+            } catch (Exception ex) {
+                Toast.makeText(
+                    this,
+                    "Could not open provider.",
+                    Toast.LENGTH_SHORT
+                ).show();
+            }
+        }
+    }
+
+    private void launchNativePlayer(Uri uri) {
+        String url = uri.getQueryParameter("url");
+
+        if (url == null || url.isBlank()) {
+            Toast.makeText(this, "Missing stream URL.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(this, PlayerActivity.class);
+        intent.putExtra(PlayerActivity.EXTRA_URL, url);
+        intent.putExtra(
+            PlayerActivity.EXTRA_TITLE,
+            valueOr(uri.getQueryParameter("title"), "OWAIS Anime")
+        );
+        intent.putExtra(
+            PlayerActivity.EXTRA_SUBTITLE,
+            valueOr(uri.getQueryParameter("subtitle"), "Now Playing")
+        );
+        intent.putExtra(
+            PlayerActivity.EXTRA_ANIME_ID,
+            valueOr(uri.getQueryParameter("id"), "")
+        );
+
+        int episode = 1;
+        try {
+            episode = Integer.parseInt(
+                valueOr(uri.getQueryParameter("episode"), "1")
+            );
+        } catch (Exception ignored) {
+        }
+
+        long position = 0L;
+        try {
+            position = Long.parseLong(
+                valueOr(uri.getQueryParameter("position"), "0")
+            );
+        } catch (Exception ignored) {
+        }
+
+        intent.putExtra(PlayerActivity.EXTRA_EPISODE, episode);
+        intent.putExtra(PlayerActivity.EXTRA_POSITION, position);
+
+        startActivityForResult(intent, REQUEST_NATIVE_PLAYER);
+    }
+
     private void setSystemBarsImmersive(boolean enabled) {
         if (android.os.Build.VERSION.SDK_INT >= 30) {
             WindowInsetsController controller = getWindow().getInsetsController();
@@ -242,6 +350,44 @@ public class MainActivity extends Activity {
 
         setRequestedOrientation(previousOrientation);
         setSystemBarsImmersive(false);
+    }
+
+    @Override
+    protected void onActivityResult(
+        int requestCode,
+        int resultCode,
+        Intent data
+    ) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (
+            requestCode != REQUEST_NATIVE_PLAYER
+                || resultCode != RESULT_OK
+                || data == null
+                || webView == null
+        ) {
+            return;
+        }
+
+        String id = valueOr(
+            data.getStringExtra(PlayerActivity.EXTRA_ANIME_ID),
+            ""
+        );
+        int episode = data.getIntExtra(PlayerActivity.EXTRA_EPISODE, 1);
+        long currentPosition = data.getLongExtra("current_position", 0L);
+        long duration = data.getLongExtra("duration", 0L);
+        boolean ended = data.getBooleanExtra("ended", false);
+
+        String script =
+            "window.OWAIS_NATIVE_PROGRESS && window.OWAIS_NATIVE_PROGRESS(" +
+                quoteJs(id) + "," +
+                episode + "," +
+                currentPosition + "," +
+                duration + "," +
+                (ended ? "true" : "false") +
+            ");";
+
+        webView.evaluateJavascript(script, null);
     }
 
     @Override
@@ -293,6 +439,19 @@ public class MainActivity extends Activity {
         }
 
         super.onDestroy();
+    }
+
+    private String quoteJs(String value) {
+        String safe = value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r");
+        return "\"" + safe + "\"";
+    }
+
+    private String valueOr(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
     }
 
     private int dp(int value) {
