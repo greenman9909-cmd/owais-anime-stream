@@ -499,17 +499,36 @@ async function openPlayer(id, episode) {
       state.playerMode = play.mode || "embed";
 
       if (state.playerMode === "direct") {
+        const previous = continueItems().find(function (item) {
+          return String(item.id) === String(anime.anilistId)
+            && Number(item.episode) === Number(episode);
+        });
+
+        const resumePosition = previous
+          ? Math.max(0, Math.round(Number(previous.currentTime || 0) * 1000))
+          : 0;
+
+        const nativeUrl =
+          "owais://play" +
+          "?url=" + encodeURIComponent(play.url) +
+          "&title=" + encodeURIComponent(name) +
+          "&subtitle=" + encodeURIComponent(
+            "Episode " + episode + " • " + state.currentTrack.toUpperCase()
+          ) +
+          "&id=" + encodeURIComponent(anime.anilistId) +
+          "&episode=" + encodeURIComponent(episode) +
+          "&position=" + encodeURIComponent(resumePosition);
+
         playerLoading.classList.add("hidden");
-        localVideo.classList.remove("hidden");
-        localVideo.src = play.url;
-        localVideo.play().catch(function () {});
-      } else {
-        playerFrame.classList.remove("hidden");
-        playerFrame.src = play.url;
-        playerFrame.onload = function () {
-          playerLoading.classList.add("hidden");
-        };
+        window.location.href = nativeUrl;
+        return;
       }
+
+      playerFrame.classList.remove("hidden");
+      playerFrame.src = play.url;
+      playerFrame.onload = function () {
+        playerLoading.classList.add("hidden");
+      };
 
       return;
     }
@@ -745,6 +764,29 @@ document.addEventListener("click", function (event) {
     showToast("Continue Watching cleared");
   }
 });
+
+window.OWAIS_NATIVE_PROGRESS = function (id, episode, positionMs, durationMs, ended) {
+  if (!state.currentAnime || String(state.currentAnime.anilistId) !== String(id)) {
+    return;
+  }
+
+  saveContinue({
+    id: state.currentAnime.anilistId,
+    title: titleOf(state.currentAnime),
+    cover: imageOf(state.currentAnime),
+    banner: bannerOf(state.currentAnime),
+    episode: Number(episode || state.currentEpisode || 1),
+    currentTime: Math.max(0, Number(positionMs || 0) / 1000),
+    duration: Math.max(0, Number(durationMs || 0) / 1000),
+    updatedAt: Date.now()
+  });
+
+  if (ended) {
+    showToast("Episode completed");
+  } else if (positionMs > 5000) {
+    showToast("Progress saved");
+  }
+};
 
 window.OWAIS_APP_BACK = function () {
   if (!sourceSheet.classList.contains("hidden")) {
