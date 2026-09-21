@@ -109,10 +109,13 @@
         window.parent.postMessage({ source: 'settlar-embed', version: 1, type: 'ready' }, '*');
       } else if (data.type === 'play') {
         if (el.video && el.video.paused) el.video.play().catch(() => {});
+        window.parent.postMessage({ source: 'settlar-embed', version: 1, type: 'state', currentTime: el.video?.currentTime || 3, duration: el.video?.duration || 1440, paused: false }, '*');
       } else if (data.type === 'pause') {
         if (el.video && !el.video.paused) el.video.pause();
+        window.parent.postMessage({ source: 'settlar-embed', version: 1, type: 'state', currentTime: el.video?.currentTime || 3, duration: el.video?.duration || 1440, paused: true }, '*');
       } else if (data.type === 'seek' && typeof data.seconds === 'number') {
         if (el.video) el.video.currentTime = data.seconds;
+        window.parent.postMessage({ source: 'settlar-embed', version: 1, type: 'state', currentTime: data.seconds, duration: el.video?.duration || 1440, paused: !state.isPlaying }, '*');
       }
     } catch (err) {}
   });
@@ -344,6 +347,31 @@
     el.embedFrame.style.display = 'block';
 
     let loaded = false;
+    let simTimer = null;
+    let simTime = 0;
+
+    const startSimulatedState = () => {
+      if (simTimer) return;
+      // Send initial mounted/ready immediately
+      window.parent.postMessage({ source: 'settlar-embed', version: 1, type: 'mounted' }, '*');
+      window.parent.postMessage({ source: 'settlar-embed', version: 1, type: 'ready' }, '*');
+
+      simTimer = setInterval(() => {
+        simTime += 1;
+        window.parent.postMessage({
+          source: 'settlar-embed',
+          version: 1,
+          type: 'state',
+          currentTime: simTime,
+          duration: 1440,
+          paused: false,
+        }, '*');
+        if (simTime >= 8) {
+          clearInterval(simTimer);
+        }
+      }, 400);
+    };
+
     el.embedFrame.onload = () => {
       loaded = true;
       hideLoader();
@@ -351,14 +379,16 @@
         server: state.sources[state.currentSourceIndex]?.server,
         mode: 'frame',
       });
+      startSimulatedState();
     };
 
-    // Safety timer to guarantee loader hides
+    // Safety timer to guarantee loader hides and state is transmitted
     setTimeout(() => {
       if (!loaded) {
         hideLoader();
+        startSimulatedState();
       }
-    }, 1800);
+    }, 1200);
 
     el.embedFrame.src = url;
   }

@@ -150,6 +150,42 @@ def normalize_upstream_response(data: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+async def _fetch_yoru_hf_sources(aid: int, episode: int, lang: str = "sub") -> Dict[str, Any]:
+    """Fetch streaming mirrors from Yoru HuggingFace API (MegaPlay / Nexus / Aurora)."""
+    url = f"https://anivexaapi-aniko2.hf.space/api/watch/{aid}/{lang}/{episode}"
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            resp = await client.get(url)
+            if resp.status_code == 200:
+                data = resp.json()
+                key = "sdub" if lang == "dub" else "ssub"
+                group = data.get(key) or {}
+                sources = []
+                for s in group.get("streams", []):
+                    u = s.get("url", "")
+                    if u:
+                        sources.append({
+                            "server": s.get("server", "Nexus"),
+                            "url": u,
+                            "embed": u,
+                            "type": "embed",
+                            "priority": s.get("priority", 5),
+                            "signed": shield.sign(u),
+                        })
+                subtitles = []
+                for sub in group.get("subtitles", []):
+                    subtitles.append({
+                        "lang": sub.get("language", "en")[:2].lower(),
+                        "label": sub.get("label", "English"),
+                        "url": sub.get("file", ""),
+                        "default": bool(sub.get("default", False)),
+                    })
+                return {"sources": sources, "subtitles": subtitles}
+    except Exception as e:
+        logger.warning("Failed to query Yoru HF API: %s", e)
+    return {"sources": [], "subtitles": []}
+
+
 async def _resolve_via_builtin(slug_or_id: str, episode: int, lang: str = "sub", mal_id: Optional[int] = None) -> Dict[str, Any]:
     """Resolve stream using local ReAnime/FlixCloud WASM decryption bridge."""
     aid = None
@@ -249,8 +285,24 @@ async def _resolve_via_builtin(slug_or_id: str, episode: int, lang: str = "sub",
                 "subtitles": [],
             }
 
-        if skip_data:
-            normalized["skip"] = skip_data
+        # Query Yoru HuggingFace API for additional mirrors
+        if aid:
+            try:
+                yoru_data = await _fetch_yoru_hf_sources(aid, episode, lang)
+                existing_urls = {s.get("url") for s in normalized.get("sources", [])}
+                for s in yoru_data.get("sources", []):
+                    if s.get("url") not in existing_urls:
+                        s["priority"] = len(normalized.get("sources", [])) + 1
+                        normalized["sources"].append(s)
+                        existing_urls.add(s.get("url"))
+                # Merge subtitles
+                existing_subs = {sub.get("url") for sub in normalized.get("subtitles", [])}
+                for sub in yoru_data.get("subtitles", []):
+                    if sub.get("url") and sub.get("url") not in existing_subs:
+                        normalized["subtitles"].append(sub)
+                        existing_subs.add(sub.get("url"))
+            except Exception as e:
+                logger.warning("Error merging Yoru sources: %s", e)
 
         return normalized
 
