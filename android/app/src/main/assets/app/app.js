@@ -24,6 +24,7 @@ const state = {
   currentEpisode: 1,
   currentMaxEpisodes: 1,
   searchTimer: null,
+  browseSort: "popular",
   officialUrl: "",
   playerMode: ""
 };
@@ -135,6 +136,17 @@ function animeCard(anime) {
   );
 }
 
+function rankedCard(anime, rank) {
+  const name = titleOf(anime);
+  return (
+    '<button class="rank-card" data-action="detail" data-id="' + esc(anime.anilistId) + '">' +
+      '<span class="rank-number">' + rank + '</span>' +
+      '<div class="rank-poster"><img src="' + esc(imageOf(anime)) + '" alt="' + esc(name) + '" loading="lazy"></div>' +
+      '<div class="rank-copy"><b>' + esc(name) + '</b><span>★ ' + esc(anime.score || "—") + '%</span></div>' +
+    '</button>'
+  );
+}
+
 function continueItems() {
   try {
     return JSON.parse(localStorage.getItem("owais_continue") || "[]");
@@ -225,68 +237,113 @@ async function loadHome() {
   state.view = "home";
   state.currentAnime = null;
   setActiveNav("home");
-  loading("Building your local home");
+  loading("Loading OWAIS v4");
 
   try {
     const result = await Promise.all([
-      api("/api/anime?sort=trending&perPage=14"),
-      api("/api/anime?sort=score&perPage=14")
+      api("/api/anime?sort=trending&perPage=12"),
+      api("/api/anime?sort=popular&perPage=12"),
+      api("/api/anime?sort=score&perPage=10")
     ]);
 
     const trending = (result[0] && result[0].results) || [];
-    const top = (result[1] && result[1].results) || [];
-    const hero = trending[0] || top[0];
+    const popular = (result[1] && result[1].results) || [];
+    const top = (result[2] && result[2].results) || [];
+    const hero = trending[0] || popular[0] || top[0];
 
     if (!hero) {
-      errorScreen("No anime found", "AniList returned no titles.", "nav-home");
+      errorScreen("Catalog unavailable", "No anime titles were returned.", "nav-home");
       return;
     }
 
     const genres = (hero.genres || []).slice(0, 3).join(" • ");
 
     const heroHtml =
-      '<section class="hero">' +
-        '<div class="hero-bg" style="background-image:url(&quot;' + esc(bannerOf(hero)) + '&quot;)"></div>' +
-        '<div class="hero-content">' +
-          '<span class="eyebrow">LOCAL APP • TRENDING</span>' +
+      '<section class="v4-hero">' +
+        '<div class="v4-hero-art" style="background-image:url(&quot;' + esc(bannerOf(hero)) + '&quot;)"></div>' +
+        '<div class="v4-hero-shade"></div>' +
+        '<div class="v4-hero-copy">' +
+          '<span class="feature-pill">FEATURED</span>' +
           '<h1>' + esc(titleOf(hero)) + '</h1>' +
-          '<div class="hero-meta">' +
+          '<div class="v4-meta">' +
             '<span class="score">★ ' + esc(hero.score || "—") + '%</span>' +
             '<span>' + esc(hero.year || "") + '</span>' +
             '<span>' + esc(hero.format || "TV") + '</span>' +
-            '<span>' + esc(genres) + '</span>' +
           '</div>' +
-          '<p>Browse from AniList through the backend running directly on your phone.</p>' +
-          '<div class="hero-actions">' +
-            '<button class="primary-btn" data-action="watch" data-id="' + esc(hero.anilistId) + '" data-episode="1">▶ Play episode 1</button>' +
-            '<button class="secondary-btn" data-action="detail" data-id="' + esc(hero.anilistId) + '">Details</button>' +
+          '<p>' + esc(genres || "Anime") + '</p>' +
+          '<div class="v4-hero-actions">' +
+            '<button class="watch-now" data-action="watch" data-id="' + esc(hero.anilistId) + '" data-episode="1">▶ WATCH NOW</button>' +
+            '<button class="circle-action" data-action="toggle-save" data-id="' + esc(hero.anilistId) + '">＋</button>' +
+            '<button class="circle-action" data-action="detail" data-id="' + esc(hero.anilistId) + '">ⓘ</button>' +
           '</div>' +
+        '</div>' +
+        '<div class="hero-dots"><i></i><i></i><i></i><i></i></div>' +
+      '</section>';
+
+    const popularHtml =
+      '<section class="v4-section">' +
+        '<div class="v4-section-head"><div><span>DISCOVER</span><h2>Popular This Week</h2></div><button data-action="nav-browse">See all</button></div>' +
+        '<div class="card-row">' + popular.map(animeCard).join("") + '</div>' +
+      '</section>';
+
+    const topHtml =
+      '<section class="v4-section top10-section">' +
+        '<div class="v4-section-head"><div><span>RANKING</span><h2>Top 10</h2></div><small>Based on AniList scores</small></div>' +
+        '<div class="rank-row">' +
+          top.slice(0, 10).map(function (anime, index) { return rankedCard(anime, index + 1); }).join("") +
         '</div>' +
       '</section>';
 
     const trendingHtml =
-      '<section class="section">' +
-        '<div class="section-head"><h2>Trending</h2><span>AniList</span></div>' +
-        '<div class="card-row">' + trending.map(animeCard).join("") + '</div>' +
-      '</section>';
-
-    const topHtml =
-      '<section class="section">' +
-        '<div class="section-head"><h2>Top Rated</h2><span>Highest scores</span></div>' +
-        '<div class="card-row">' + top.map(animeCard).join("") + '</div>' +
+      '<section class="v4-section">' +
+        '<div class="v4-section-head"><div><span>NOW</span><h2>Trending</h2></div></div>' +
+        '<div class="card-row">' + trending.slice(1).map(animeCard).join("") + '</div>' +
       '</section>';
 
     view.innerHTML =
       heroHtml +
       renderContinue() +
-      trendingHtml +
-      topHtml;
+      popularHtml +
+      topHtml +
+      trendingHtml;
   } catch (error) {
     errorScreen(
-      "Local backend could not load catalog",
-      error.message || "Connection failed.",
+      "Could not load OWAIS",
+      error.message || "The local catalog request failed.",
       "nav-home"
     );
+  }
+}
+
+async function loadBrowse(sort) {
+  state.view = "browse";
+  state.currentAnime = null;
+  state.browseSort = sort || state.browseSort || "popular";
+  setActiveNav("browse");
+  loading("Loading browse");
+
+  try {
+    const data = await api(
+      "/api/anime?sort=" + encodeURIComponent(state.browseSort) + "&perPage=36"
+    );
+    const results = (data && data.results) || [];
+
+    view.innerHTML =
+      '<section class="browse-page">' +
+        '<div class="browse-intro">' +
+          '<span class="eyebrow">EXPLORE</span>' +
+          '<h1>Browse anime</h1>' +
+          '<p>Find something worth watching.</p>' +
+        '</div>' +
+        '<div class="filter-strip">' +
+          '<button class="' + (state.browseSort === "popular" ? "active" : "") + '" data-action="browse-sort" data-sort="popular">Popular</button>' +
+          '<button class="' + (state.browseSort === "trending" ? "active" : "") + '" data-action="browse-sort" data-sort="trending">Trending</button>' +
+          '<button class="' + (state.browseSort === "score" ? "active" : "") + '" data-action="browse-sort" data-sort="score">Top Rated</button>' +
+        '</div>' +
+        '<div class="browse-grid">' + results.map(animeCard).join("") + '</div>' +
+      '</section>';
+  } catch (error) {
+    errorScreen("Browse unavailable", error.message || "Could not load titles.", "nav-browse");
   }
 }
 
@@ -356,7 +413,7 @@ async function doSearch(query) {
 async function openDetail(id) {
   state.view = "detail";
   setActiveNav("");
-  loading("Loading details locally");
+  loading("Opening series");
 
   try {
     const anime = await api("/api/anime/" + encodeURIComponent(id));
@@ -367,56 +424,52 @@ async function openDetail(id) {
     );
 
     const name = titleOf(anime);
-    const tags = (anime.genres || []).slice(0, 5).map(function (genre) {
+    const tags = (anime.genres || []).slice(0, 4).map(function (genre) {
       return '<span class="tag">' + esc(genre) + '</span>';
     }).join("");
 
     const episodes = (anime.episodeList || []).map(function (episode, index) {
       const num = Number(episode.number || index + 1);
       return (
-        '<button class="ep-btn" data-action="watch" data-id="' +
-        esc(anime.anilistId) +
-        '" data-episode="' + num + '">' + num + '</button>'
+        '<button class="episode-row" data-action="watch" data-id="' +
+        esc(anime.anilistId) + '" data-episode="' + num + '">' +
+          '<span class="episode-number">' + num + '</span>' +
+          '<span class="episode-thumb" style="background-image:url(&quot;' + esc(bannerOf(anime)) + '&quot;)"><i>▶</i></span>' +
+          '<span class="episode-copy"><b>Episode ' + num + '</b><small>' + esc(state.currentTrack.toUpperCase()) + ' • Ready when a source is available</small></span>' +
+          '<span class="episode-more">›</span>' +
+        '</button>'
       );
     }).join("");
 
     view.innerHTML =
-      '<section class="detail-page">' +
-        '<div class="detail-hero" style="background-image:url(&quot;' + esc(bannerOf(anime)) + '&quot;)">' +
-          '<button class="round-btn detail-back" data-action="nav-home">←</button>' +
+      '<section class="series-page">' +
+        '<div class="series-backdrop" style="background-image:url(&quot;' + esc(bannerOf(anime)) + '&quot;)">' +
+          '<button class="series-back" data-action="nav-home">←</button>' +
         '</div>' +
-        '<div class="detail-content">' +
-          '<div class="detail-main">' +
-            '<img class="detail-poster" src="' + esc(imageOf(anime)) + '" alt="' + esc(name) + '">' +
-            '<div class="detail-title">' +
-              '<h1>' + esc(name) + '</h1>' +
-              '<p>★ ' + esc(anime.score || "—") + '% • ' + esc(anime.year || "") + ' • ' + esc(anime.format || "TV") + '</p>' +
-              '<div class="tag-row">' + tags + '</div>' +
-            '</div>' +
+        '<div class="series-body">' +
+          '<div class="series-title-block">' +
+            '<span class="eyebrow">SERIES</span>' +
+            '<h1>' + esc(name) + '</h1>' +
+            '<div class="series-meta"><span>★ ' + esc(anime.score || "—") + '%</span><span>' + esc(anime.year || "") + '</span><span>' + esc(anime.format || "TV") + '</span><span>' + esc(anime.episodes || "—") + ' eps</span></div>' +
+            '<div class="tag-row">' + tags + '</div>' +
           '</div>' +
-          '<div class="detail-actions">' +
-            '<button class="primary-btn" data-action="watch" data-id="' + esc(anime.anilistId) + '" data-episode="1">▶ Start watching</button>' +
-            '<button class="secondary-btn" data-action="toggle-save" data-id="' + esc(anime.anilistId) + '">' +
-              (isSaved(anime.anilistId) ? "♥ In My List" : "♡ My List") +
-            '</button>' +
+          '<div class="series-actions">' +
+            '<button class="watch-now wide" data-action="watch" data-id="' + esc(anime.anilistId) + '" data-episode="1">▶ START WATCHING</button>' +
+            '<button class="secondary-square" data-action="toggle-save" data-id="' + esc(anime.anilistId) + '">' + (isSaved(anime.anilistId) ? "♥" : "＋") + '</button>' +
           '</div>' +
-          '<p class="synopsis">' + esc(anime.synopsis || "No synopsis available.") + '</p>' +
-          '<div class="episode-head">' +
+          '<p class="series-synopsis">' + esc(anime.synopsis || "No synopsis available.") + '</p>' +
+          '<div class="episodes-toolbar">' +
             '<h2>Episodes</h2>' +
             '<div class="track-toggle">' +
               '<button class="' + (state.currentTrack === "sub" ? "active" : "") + '" data-action="set-track" data-track="sub">SUB</button>' +
               '<button class="' + (state.currentTrack === "dub" ? "active" : "") + '" data-action="set-track" data-track="dub">DUB</button>' +
             '</div>' +
           '</div>' +
-          '<div class="episode-grid">' + episodes + '</div>' +
+          '<div class="episode-list">' + episodes + '</div>' +
         '</div>' +
       '</section>';
   } catch (error) {
-    errorScreen(
-      "Could not load details",
-      error.message || "Request failed.",
-      "nav-home"
-    );
+    errorScreen("Could not open series", error.message || "Request failed.", "nav-home");
   }
 }
 
@@ -708,10 +761,14 @@ document.addEventListener("click", function (event) {
 
   if (action === "nav-home") {
     loadHome();
+  } else if (action === "nav-browse") {
+    loadBrowse();
   } else if (action === "nav-search") {
     loadSearch();
   } else if (action === "nav-library") {
     loadLibrary();
+  } else if (action === "browse-sort") {
+    loadBrowse(button.dataset.sort || "popular");
   } else if (action === "detail") {
     openDetail(button.dataset.id);
   } else if (action === "watch") {
@@ -807,6 +864,7 @@ window.OWAIS_APP_BACK = function () {
 
   if (
     state.view === "detail" ||
+    state.view === "browse" ||
     state.view === "search" ||
     state.view === "library"
   ) {
