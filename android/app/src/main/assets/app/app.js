@@ -534,17 +534,23 @@ async function openPlayer(id, episode) {
     }
 
     playerLoading.classList.add("hidden");
-    playerUnavailable.classList.remove("hidden");
-    playerUnavailableText.textContent =
-      play.message ||
-      "Add an authorized source in Local Source settings.";
 
     if (play.officialUrl) {
       state.officialUrl = play.officialUrl;
+      playerUnavailable.classList.remove("hidden");
+      playerUnavailableText.textContent =
+        "No local media source is configured for this title. An official provider is available.";
       officialButton.classList.remove("hidden");
       officialButton.textContent =
         (play.officialTitle || "Official provider") + " ↗";
+      return;
     }
+
+    playerScreen.classList.add("hidden");
+    bottomNav.classList.remove("hidden");
+    document.body.style.overflow = "";
+    showToast("Choose a local source once, then Play works automatically");
+    openSourceSettings();
   } catch (error) {
     playerLoading.classList.add("hidden");
     playerUnavailable.classList.remove("hidden");
