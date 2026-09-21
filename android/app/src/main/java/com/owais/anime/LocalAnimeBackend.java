@@ -424,7 +424,8 @@ public class LocalAnimeBackend {
             "  coverImage { large extraLarge } bannerImage description(asHtml: false)" +
             "  format episodes status seasonYear averageScore genres" +
             "  nextAiringEpisode { episode }" +
-            "  streamingEpisodes { title thumbnail url site }" +
+            "  streamingEpisodes { title thumbnail url site }
+  externalLinks { site url type }" +
             " }" +
             "}";
 
@@ -459,20 +460,61 @@ public class LocalAnimeBackend {
         result.put("episodeList", episodeList);
 
         JSONArray officialStreams = new JSONArray();
+        java.util.HashSet<String> officialUrls = new java.util.HashSet<>();
+
         JSONArray streams = media.optJSONArray("streamingEpisodes");
         if (streams != null) {
             for (int i = 0; i < streams.length(); i++) {
                 JSONObject source = streams.optJSONObject(i);
                 if (source == null) continue;
 
+                String streamUrl = source.optString("url", "");
+                if (streamUrl.isBlank() || !officialUrls.add(streamUrl)) continue;
+
                 JSONObject item = new JSONObject();
                 item.put("title", source.optString("title", "Official stream"));
-                item.put("url", source.optString("url", ""));
+                item.put("url", streamUrl);
                 item.put("site", source.optString("site", ""));
                 item.put("thumbnail", source.optString("thumbnail", ""));
                 officialStreams.put(item);
             }
         }
+
+        JSONArray externalLinks = media.optJSONArray("externalLinks");
+        if (externalLinks != null) {
+            for (int i = 0; i < externalLinks.length(); i++) {
+                JSONObject source = externalLinks.optJSONObject(i);
+                if (source == null) continue;
+
+                String type = source.optString("type", "");
+                String site = source.optString("site", "");
+                String streamUrl = source.optString("url", "");
+
+                if (
+                    streamUrl.isBlank()
+                        || officialUrls.contains(streamUrl)
+                        || !(
+                            "STREAMING".equalsIgnoreCase(type)
+                                || site.toLowerCase(Locale.ROOT).contains("crunchyroll")
+                                || site.toLowerCase(Locale.ROOT).contains("netflix")
+                                || site.toLowerCase(Locale.ROOT).contains("hidive")
+                                || site.toLowerCase(Locale.ROOT).contains("prime")
+                        )
+                ) {
+                    continue;
+                }
+
+                officialUrls.add(streamUrl);
+
+                JSONObject item = new JSONObject();
+                item.put("title", site.isBlank() ? "Official provider" : site);
+                item.put("url", streamUrl);
+                item.put("site", site);
+                item.put("thumbnail", "");
+                officialStreams.put(item);
+            }
+        }
+
         result.put("officialStreams", officialStreams);
 
         cache.put(cacheKey, new CacheEntry(System.currentTimeMillis(), result));
