@@ -7,8 +7,8 @@
   --text:#f8fafc;
   --muted:#94a3b8;
   --muted2:#64748b;
-  --purple:#8b5cf6;
-  --purple2:#a78bfa;
+  --purple:#f47521;
+  --purple2:#ff9a52;
   --cyan:#22d3ee;
   --green:#34d399;
   --red:#fb7185;
@@ -494,4 +494,42 @@ body:after{
   .anime-card{width:128px;flex-basis:128px}
   .poster-wrap{width:128px;height:184px}
   .episode-grid{grid-template-columns:repeat(3,1fr)}
+}
+
+
+/* v3.1 visual refresh */
+.brand-mark{
+  background:linear-gradient(145deg,#ff9a52,#f47521);
+  box-shadow:0 12px 34px rgba(244,117,33,.30),inset 0 1px 0 rgba(255,255,255,.22)
+}
+.server-chip{
+  border-color:rgba(244,117,33,.28);
+  background:rgba(244,117,33,.10);
+  color:#ffe8d6
+}
+.server-chip>span{
+  background:#f47521;
+  box-shadow:0 0 12px rgba(244,117,33,.48)
+}
+.primary-btn,.save-source{
+  background:linear-gradient(135deg,#ff9a52,#f47521);
+  box-shadow:0 14px 34px rgba(244,117,33,.28),inset 0 1px 0 rgba(255,255,255,.18)
+}
+.nav-item.active{
+  background:linear-gradient(180deg,rgba(244,117,33,.22),rgba(244,117,33,.08));
+  box-shadow:inset 0 0 0 1px rgba(255,154,82,.10)
+}
+.track-pill{
+  border-color:rgba(244,117,33,.35);
+  background:rgba(244,117,33,.12);
+  color:#ffb37c
+}
+.eyebrow,.brand-copy small{
+  color:#ff9a52
+}
+.poster-wrap:active,.anime-card:active .poster-wrap{
+  border-color:rgba(244,117,33,.55)
+}
+.detail-actions .primary-btn{
+  background:linear-gradient(135deg,#ff9a52,#f47521)
 }
