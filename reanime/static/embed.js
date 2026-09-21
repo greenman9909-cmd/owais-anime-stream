@@ -75,10 +75,47 @@
         ...extra,
       };
       window.parent.postMessage(payload, '*');
+
+      // Settlar bridge for seamless ani.pm embedded player integration
+      if (eventName === 'ready') {
+        window.parent.postMessage({ source: 'settlar-embed', version: 1, type: 'mounted' }, '*');
+        window.parent.postMessage({ source: 'settlar-embed', version: 1, type: 'ready' }, '*');
+      } else if (eventName === 'timeupdate') {
+        window.parent.postMessage({
+          source: 'settlar-embed',
+          version: 1,
+          type: 'state',
+          currentTime: extra.currentTime || 0,
+          duration: extra.duration || 0,
+          paused: !state.isPlaying,
+        }, '*');
+      } else if (eventName === 'ended') {
+        window.parent.postMessage({ source: 'settlar-embed', version: 1, type: 'ended' }, '*');
+      } else if (eventName === 'error') {
+        window.parent.postMessage({ source: 'settlar-embed', version: 1, type: 'error', code: 'playback-error' }, '*');
+      }
     } catch (e) {
       console.warn('postMessage emit failed:', e);
     }
   }
+
+  // --- Listen to parent commands from ani.pm shell ---
+  window.addEventListener('message', (e) => {
+    try {
+      const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+      if (!data || data.source !== 'ani-pm') return;
+      if (data.type === 'handshake') {
+        window.parent.postMessage({ source: 'settlar-embed', version: 1, type: 'mounted' }, '*');
+        window.parent.postMessage({ source: 'settlar-embed', version: 1, type: 'ready' }, '*');
+      } else if (data.type === 'play') {
+        if (el.video && el.video.paused) el.video.play().catch(() => {});
+      } else if (data.type === 'pause') {
+        if (el.video && !el.video.paused) el.video.pause();
+      } else if (data.type === 'seek' && typeof data.seconds === 'number') {
+        if (el.video) el.video.currentTime = data.seconds;
+      }
+    } catch (err) {}
+  });
 
   // --- Route & Parameter Parsing ---
   function parseParams() {
@@ -233,6 +270,9 @@
   // --- Stream Mount & Hls.js Lifecycle ---
   async function initPlayer() {
     parseParams();
+    try {
+      window.parent.postMessage({ source: 'settlar-embed', version: 1, type: 'mounted' }, '*');
+    } catch (e) {}
     showLoader('RESOLVING STREAM CLUSTERS...');
 
     try {
