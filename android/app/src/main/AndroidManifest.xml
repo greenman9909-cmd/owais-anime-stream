@@ -9,7 +9,16 @@
         android:icon="@drawable/ic_launcher"
         android:roundIcon="@drawable/ic_launcher"
         android:usesCleartextTraffic="true"
+        android:supportsPictureInPicture="true"
         android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".PlayerActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|uiMode"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="true" />
+
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|smallestScreenSize|uiMode"
