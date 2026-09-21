@@ -121,40 +121,29 @@ window.addEventListener('message', (event) => {
 
 ## 📱 Android anime app
 
-This repository now includes a local-first Android client under `android/`.
+The Android client under `android/` now runs its **own backend on the phone**.
 
-The mobile UI is bundled inside the APK, so the app shell itself runs locally on the phone. By default it connects to the existing Render backend:
-
-```text
-https://owais-anime-stream-open.onrender.com
-```
-
-The app includes:
-
-- Trending and top-rated anime home sections
-- AniList-powered search
-- Anime details, genres, score and episode grid
-- SUB / DUB switching
-- The existing OWAIS embed player and resolver flow
-- Fullscreen WebView video support
-- Continue Watching saved locally from `yoru:event` playback events
-- My List saved locally on the device
-- Render wake-up/retry handling
-- Configurable backend URL for Render, LAN, or localhost development
-
-Build locally:
-
-```bash
-gradle -p android assembleDebug
-```
-
-GitHub Actions builds the APK automatically whenever the Android project changes and publishes the latest successful binary to the repository root as:
+When the APK opens it starts a loopback HTTP service such as:
 
 ```text
-OWAIS-Anime.apk
+http://127.0.0.1:8765
 ```
 
-See [`android/README.md`](android/README.md) for implementation details.
+The bundled APK-specific UI is served from that local service. The Android app does not use the Render deployment as its API.
+
+On-device features include:
+
+- Localhost backend started automatically on launch
+- AniList search, trending, top-rated and detail requests made from the device
+- Local metadata caching
+- My List and Continue Watching stored on the phone
+- SUB / DUB local source templates
+- Local video or embed playback modes for sources the user is authorized to use
+- Official streaming links surfaced from AniList when available
+
+The APK deliberately does not bundle third-party token-decryption or access-control bypass logic. See [`android/README.md`](android/README.md) for the local source adapter format.
+
+GitHub Actions publishes the latest successful Android build to the repo root as `OWAIS-Anime.apk`.
 
 ## Run locally
 
