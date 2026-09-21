@@ -5,32 +5,35 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#05070b">
   <title>OWAIS Anime</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <div id="appShell">
     <header class="topbar">
       <button class="brand" data-action="nav-home" aria-label="Home">
-        <span class="brand-moon"><span class="brand-play"></span></span>
+        <span class="brand-mark"><span class="brand-play"></span></span>
         <span class="brand-copy"><b>OWAIS</b><small>ANIME</small></span>
       </button>
-      <button id="serverChip" class="server-chip" data-action="server-settings">
-        <span id="serverDot"></span>
-        <span id="serverText">Connecting</span>
-      </button>
+
+      <div class="top-actions">
+        <button id="serverChip" class="server-chip online" data-action="source-settings">
+          <span></span><b>LOCAL</b>
+        </button>
+        <button class="icon-button" data-action="source-settings" aria-label="Local source settings">⚙</button>
+      </div>
     </header>
 
     <main id="view" class="view"></main>
 
     <nav id="bottomNav" class="bottom-nav">
       <button class="nav-item active" data-action="nav-home">
-        <span class="nav-icon">⌂</span><span>Home</span>
+        <span class="nav-glyph">⌂</span><span>Home</span>
       </button>
       <button class="nav-item" data-action="nav-search">
-        <span class="nav-icon">⌕</span><span>Search</span>
+        <span class="nav-glyph">⌕</span><span>Search</span>
       </button>
       <button class="nav-item" data-action="nav-library">
-        <span class="nav-icon">♡</span><span>My List</span>
+        <span class="nav-glyph">♡</span><span>My List</span>
       </button>
     </nav>
   </div>
@@ -42,25 +45,38 @@
         <b id="playerTitle">Now Playing</b>
         <span id="playerSubtitle">Episode 1</span>
       </div>
-      <button class="round-btn" data-action="toggle-track">SUB</button>
+      <button id="trackButton" class="track-pill" data-action="toggle-track">SUB</button>
     </div>
 
-    <div class="player-frame-wrap">
+    <div class="player-stage">
+      <video id="localVideo" class="local-video hidden" controls playsinline></video>
       <iframe
         id="playerFrame"
+        class="player-frame hidden"
         title="OWAIS Anime Player"
         allow="autoplay; fullscreen; picture-in-picture"
         allowfullscreen></iframe>
-      <div id="playerLoading" class="player-loading">
+
+      <div id="playerLoading" class="player-state">
         <div class="spinner"></div>
-        <b>Loading episode</b>
-        <span>The Render service may need a moment to wake.</span>
+        <b>Preparing local playback</b>
+        <span>The player is talking to the backend running on this phone.</span>
+      </div>
+
+      <div id="playerUnavailable" class="player-state hidden">
+        <span class="big-glyph">◉</span>
+        <b>No local source configured</b>
+        <p id="playerUnavailableText">Add an authorized stream/embed template in Local Source settings.</p>
+        <div class="state-actions">
+          <button class="primary-btn" data-action="source-settings">Configure source</button>
+          <button id="officialButton" class="secondary-btn hidden" data-action="open-official">Official provider ↗</button>
+        </div>
       </div>
     </div>
 
     <div class="player-meta">
       <div>
-        <span class="eyebrow">NOW PLAYING</span>
+        <span class="eyebrow">PLAYING LOCALLY</span>
         <h2 id="playerMetaTitle">Anime</h2>
         <p id="playerMetaEpisode">Episode 1</p>
       </div>
@@ -72,7 +88,51 @@
     </div>
   </section>
 
+  <div id="sourceSheet" class="sheet-backdrop hidden">
+    <section class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-head">
+        <div>
+          <span class="eyebrow">ON-DEVICE BACKEND</span>
+          <h2>Local Source</h2>
+        </div>
+        <button class="round-btn" data-action="close-source-settings">×</button>
+      </div>
+
+      <p class="sheet-copy">
+        OWAIS Anime itself runs from <b>127.0.0.1</b>. Add a stream or embed URL template you are authorized to use.
+        Available placeholders: <code>{id}</code>, <code>{episode}</code>, <code>{track}</code>.
+      </p>
+
+      <label class="field">
+        <span>Playback mode</span>
+        <select id="providerMode">
+          <option value="embed">Embed page</option>
+          <option value="direct">Direct video / HLS URL</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>SUB template</span>
+        <input id="subTemplate" type="url" placeholder="https://provider.example/watch/{id}/{episode}?lang={track}">
+      </label>
+
+      <label class="field">
+        <span>DUB template</span>
+        <input id="dubTemplate" type="url" placeholder="Optional separate dub template">
+      </label>
+
+      <div class="local-box">
+        <div><span class="status-light"></span><b>Backend</b></div>
+        <code id="localAddress">http://127.0.0.1</code>
+      </div>
+
+      <button class="save-source" data-action="save-source-settings">Save local source</button>
+      <button class="clear-source" data-action="clear-source-settings">Clear source</button>
+    </section>
+  </div>
+
   <div id="toast" class="toast"></div>
-  <script src="app.js"></script>
+  <script src="/app.js"></script>
 </body>
 </html>
