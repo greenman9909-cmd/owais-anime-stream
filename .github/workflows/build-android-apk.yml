@@ -38,15 +38,17 @@ jobs:
 
       - name: Publish APK to repository root
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk OWAIS-Anime.apk
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git reset --hard origin/main
+          cp android/app/build/outputs/apk/debug/app-debug.apk OWAIS-Anime.apk
           git add OWAIS-Anime.apk
           if git diff --cached --quiet; then
             echo "APK unchanged"
           else
             git commit -m "build: publish OWAIS Anime APK"
-            git push
+            git push origin main
           fi
 
       - name: Upload APK artifact
