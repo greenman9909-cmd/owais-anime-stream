@@ -424,8 +424,8 @@ public class LocalAnimeBackend {
             "  coverImage { large extraLarge } bannerImage description(asHtml: false)" +
             "  format episodes status seasonYear averageScore genres" +
             "  nextAiringEpisode { episode }" +
-            "  streamingEpisodes { title thumbnail url site }
-  externalLinks { site url type }" +
+            "  streamingEpisodes { title thumbnail url site }" +
+            "  externalLinks { site url type }" +
             " }" +
             "}";
 
