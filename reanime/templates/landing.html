@@ -3,46 +3,105 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>OWAIS Anime v6 — mobile-first anime app</title>
-  <meta name="description" content="Preview OWAIS Anime v6 in your browser and download the Android build. Fast anime discovery, local watch history, responsive playback UI and provider-ready embeds.">
-  <meta name="robots" content="index,follow,max-image-preview:large">
-  <meta property="og:title" content="OWAIS Anime v6">
-  <meta property="og:description" content="A polished mobile-first anime catalogue and player shell with a live browser preview.">
+  <title>OWAIS Anime v7 — anime discovery and Android player</title>
+  <meta name="description" content="Preview OWAIS Anime v7 in your browser or install the Android APK. Search anime, browse weekly trends, track progress and play available episodes through the public ani.pm Player API.">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="theme-color" content="#09090d">
   <meta property="og:type" content="website">
-  <meta name="theme-color" content="#070707">
+  <meta property="og:site_name" content="OWAIS Anime">
+  <meta property="og:title" content="OWAIS Anime v7">
+  <meta property="og:description" content="A mobile-first anime app with a live browser preview and Android APK.">
+  <meta property="og:url" content="https://owais-anime-stream-open.onrender.com/launch">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="OWAIS Anime v7">
+  <meta name="twitter:description" content="Live web preview + Android APK, powered by the public ani.pm catalogue and player APIs.">
   <link rel="canonical" href="https://owais-anime-stream-open.onrender.com/launch">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"OWAIS Anime","applicationCategory":"EntertainmentApplication","operatingSystem":"Android, Web","softwareVersion":"6.0.0"}</script>
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"SoftwareApplication",
+    "name":"OWAIS Anime",
+    "applicationCategory":"EntertainmentApplication",
+    "operatingSystem":"Android, Web",
+    "softwareVersion":"7.0.0",
+    "url":"https://owais-anime-stream-open.onrender.com/launch",
+    "downloadUrl":"https://github.com/greenman9909-cmd/owais-anime-stream/releases/download/v7-apk/OWAIS-Anime-v7.apk",
+    "isAccessibleForFree":true
+  }
+  </script>
   <style>
-    :root{--bg:#060607;--panel:#101014;--text:#f7f7f8;--muted:#9b9ba4;--line:rgba(255,255,255,.09);--accent:#8b5cf6;--glow:#8b5cf6}
-    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 80% 0,rgba(139,92,246,.18),transparent 34%),radial-gradient(circle at 10% 20%,rgba(139,92,246,.12),transparent 28%),var(--bg);color:var(--text);font-family:Manrope,Inter,system-ui,sans-serif}
-    a{color:inherit;text-decoration:none}.nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;max-width:1180px;margin:auto;padding:18px 22px;background:rgba(6,6,7,.72);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
-    .brand{font:800 16px/1 "Space Grotesk",sans-serif;letter-spacing:.12em}.brand b{color:var(--accent)}.navlinks{display:flex;gap:9px}.navlinks a,.btn{border:1px solid var(--line);padding:11px 15px;border-radius:999px;font-size:13px;font-weight:700}.btn.primary{background:var(--accent);color:#101010;border-color:var(--accent)}
-    .hero{max-width:1180px;margin:auto;display:grid;grid-template-columns:1.04fr .96fr;gap:58px;align-items:center;padding:86px 22px 72px;min-height:82vh}.eyebrow{font:800 11px/1 "Space Grotesk";letter-spacing:.18em;color:#c4b5fd;text-transform:uppercase}.hero h1{font:700 clamp(50px,8vw,96px)/.91 "Space Grotesk";letter-spacing:-.065em;margin:18px 0 24px;max-width:760px}.gradient{background:linear-gradient(110deg,#fff 15%,#c4b5fd 48%,#b9a4ff 82%);-webkit-background-clip:text;color:transparent}.hero p{max-width:610px;color:#b4b4bc;font-size:17px;line-height:1.7}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px}
-    .phone-wrap{position:relative;display:grid;place-items:center}.orb{position:absolute;width:78%;aspect-ratio:1;border-radius:50%;filter:blur(44px);background:linear-gradient(135deg,rgba(139,92,246,.24),rgba(125,211,252,.18))}.phone{position:relative;width:min(390px,86vw);aspect-ratio:9/19.2;border-radius:46px;padding:10px;background:linear-gradient(145deg,#37373b,#101014 50%,#27272b);box-shadow:0 40px 100px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.1) inset}.phone:before{content:"";position:absolute;z-index:4;top:18px;left:50%;transform:translateX(-50%);width:31%;height:25px;border-radius:99px;background:#050506}.phone iframe{width:100%;height:100%;border:0;border-radius:38px;background:#080809}
-    .strip{border-block:1px solid var(--line);background:rgba(255,255,255,.025);overflow:hidden}.ticker{display:flex;gap:44px;width:max-content;padding:16px 0;animation:ticker 24s linear infinite;color:#7f7f88;font:700 12px "Space Grotesk";letter-spacing:.12em;text-transform:uppercase}@keyframes ticker{to{transform:translateX(-50%)}}.ticker span:before{content:"✦";color:var(--accent);margin-right:44px}
-    .section{max-width:1180px;margin:auto;padding:92px 22px}.section h2{font:700 clamp(34px,5vw,64px)/1 "Space Grotesk";letter-spacing:-.045em;margin:12px 0 16px}.section>p{color:var(--muted);max-width:680px;line-height:1.7}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:38px}.card{min-height:230px;padding:26px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.018));position:relative;overflow:hidden}.card:after{content:"";position:absolute;right:-45px;bottom:-60px;width:150px;height:150px;border-radius:50%;background:rgba(139,92,246,.12);filter:blur(18px)}.num{font:700 12px "Space Grotesk";color:#c4b5fd}.card h3{font:700 24px "Space Grotesk";margin:52px 0 10px}.card p{color:#93939b;line-height:1.6;font-size:14px}
-    .demo{display:grid;grid-template-columns:1fr 1fr;gap:18px}.demo-panel{padding:34px;border:1px solid var(--line);border-radius:28px;background:#0b0b0e}.demo-panel code{display:block;color:#b8a7ff;background:#070709;border:1px solid var(--line);padding:18px;border-radius:16px;overflow:auto;margin-top:20px}
-    footer{max-width:1180px;margin:50px auto 0;padding:30px 22px 50px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;color:#75757d;font-size:12px}
-    @media(max-width:860px){.hero{grid-template-columns:1fr;padding-top:58px}.hero-copy{text-align:center}.hero p{margin-inline:auto}.actions{justify-content:center}.grid,.demo{grid-template-columns:1fr}.navlinks a:first-child{display:none}.phone{width:min(390px,92vw)}.section{padding-top:72px}}
+    :root{--bg:#08090d;--panel:#11131a;--panel2:#171923;--text:#f8f8fb;--muted:#9b9eaa;--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.15);--violet:#8b5cf6;--violet2:#6d5dfc;--cyan:#7dd3fc;--green:#5ee0a0}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--text);background:radial-gradient(circle at 80% -10%,rgba(139,92,246,.22),transparent 34%),radial-gradient(circle at 5% 20%,rgba(125,211,252,.10),transparent 28%),var(--bg);font-family:Manrope,system-ui,sans-serif;overflow-x:hidden}
+    a{color:inherit;text-decoration:none}button{font:inherit}.nav{position:sticky;top:0;z-index:40;height:70px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;max-width:1220px;margin:auto;background:rgba(8,9,13,.74);backdrop-filter:blur(22px);border-bottom:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:10px;font:700 16px "Space Grotesk",sans-serif}.mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,#a78bfa,#6d5dfc);display:grid;place-items:center;box-shadow:0 12px 35px rgba(109,93,252,.28)}.mark:before{content:"";width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:11px solid white;margin-left:3px}.brand small{color:#8e91a0;font-size:14px;font-weight:600}
+    .navlinks{display:flex;gap:8px;align-items:center}.pill,.cta{height:40px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:0 15px;border:1px solid var(--line);font-size:12px;font-weight:800;background:rgba(17,19,26,.75)}.cta{border:0;background:linear-gradient(135deg,#9a72ff,#705fff);box-shadow:0 12px 30px rgba(112,95,255,.24)}
+    .hero{max-width:1220px;margin:auto;display:grid;grid-template-columns:1.04fr .96fr;gap:54px;align-items:center;padding:76px 24px 86px;min-height:820px}.eyebrow{font:700 11px "Space Grotesk";letter-spacing:.14em;text-transform:uppercase;color:#b9a8ff}.hero h1{font:700 clamp(54px,7.5vw,100px)/.91 "Space Grotesk";letter-spacing:-.065em;margin:18px 0 24px;max-width:760px}.gradient{background:linear-gradient(110deg,#fff 12%,#c4b5fd 47%,#7dd3fc 88%);-webkit-background-clip:text;color:transparent}.hero p{max-width:620px;color:#b3b5c0;font-size:17px;line-height:1.72}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px}.micro{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.micro span{border:1px solid var(--line);background:rgba(255,255,255,.025);padding:7px 10px;border-radius:999px;font-size:10px;color:#8f92a0}
+    .phone-wrap{position:relative;display:grid;place-items:center}.orb{position:absolute;width:90%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.3),rgba(125,211,252,.08) 48%,transparent 72%);filter:blur(34px);animation:pulse 5s ease-in-out infinite}.phone{position:relative;width:min(390px,90vw);aspect-ratio:9/19.4;padding:10px;border-radius:48px;background:linear-gradient(145deg,#343642,#101118 48%,#252733);box-shadow:0 50px 120px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.11) inset;transform:rotate(1.5deg)}.phone:before{content:"";position:absolute;z-index:5;top:18px;left:50%;transform:translateX(-50%);width:31%;height:25px;border-radius:99px;background:#030407}.phone iframe{width:100%;height:100%;border:0;border-radius:39px;background:#09090d}
+    @keyframes pulse{50%{transform:scale(1.08);opacity:.75}}
+    .rail{border-block:1px solid var(--line);background:rgba(255,255,255,.02);overflow:hidden}.rail-inner{display:flex;width:max-content;gap:36px;padding:15px 0;animation:scroll 24s linear infinite;color:#727583;font:700 11px "Space Grotesk";letter-spacing:.12em;text-transform:uppercase}.rail-inner span:before{content:"✦";color:#9d86ff;margin-right:36px}@keyframes scroll{to{transform:translateX(-50%)}}
+    .section{max-width:1220px;margin:auto;padding:94px 24px}.section h2{font:700 clamp(36px,5vw,66px)/1 "Space Grotesk";letter-spacing:-.05em;margin:12px 0 18px}.section>p{max-width:720px;color:var(--muted);font-size:15px;line-height:1.75}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:38px}.card{min-height:250px;border:1px solid var(--line);border-radius:26px;padding:26px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.018));position:relative;overflow:hidden}.card:after{content:"";position:absolute;width:170px;height:170px;border-radius:50%;right:-70px;bottom:-70px;background:rgba(139,92,246,.12);filter:blur(20px)}.card .num{font:700 11px "Space Grotesk";color:#af9dff}.card h3{font:700 25px "Space Grotesk";margin:56px 0 10px}.card p{color:#9396a3;font-size:13px;line-height:1.65}
+    .motion{margin-top:42px;border:1px solid var(--line);border-radius:30px;background:#0c0d12;overflow:hidden;padding:18px}.motion-stage{height:420px;border-radius:20px;position:relative;overflow:hidden;background:radial-gradient(circle at 80% 20%,rgba(139,92,246,.24),transparent 30%),linear-gradient(145deg,#0e0f17,#08090d)}.shot{position:absolute;border:1px solid var(--line2);border-radius:22px;background:rgba(18,19,27,.88);box-shadow:0 25px 65px rgba(0,0,0,.4);overflow:hidden;animation:float 8s ease-in-out infinite}.shot.one{width:250px;height:340px;left:9%;top:44px;transform:rotate(-6deg)}.shot.two{width:300px;height:190px;left:38%;top:108px;animation-delay:-2s}.shot.three{width:230px;height:310px;right:8%;top:54px;transform:rotate(5deg);animation-delay:-4s}.fake-hero{height:54%;background:linear-gradient(145deg,#41336f,#172a40);position:relative}.fake-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent,#101119)}.fake-lines{padding:15px}.fake-lines i{display:block;height:9px;border-radius:9px;background:#343743;margin:8px 0}.fake-lines i:nth-child(1){width:72%;height:14px;background:#eeeff5}.fake-lines i:nth-child(2){width:46%}.fake-lines i:nth-child(3){width:84%}.fake-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px}.fake-grid i{aspect-ratio:.7;border-radius:10px;background:linear-gradient(150deg,#322e58,#1a1b28)}@keyframes float{50%{translate:0 -12px}}
+    .api{display:grid;grid-template-columns:1fr 1fr;gap:16px}.api-box{border:1px solid var(--line);border-radius:26px;background:#0d0e14;padding:30px}.api-box h3{font:700 27px "Space Grotesk";margin:10px 0}.api-box p{color:var(--muted);line-height:1.7;font-size:13px}.api-box code{display:block;margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:14px;background:#08090d;color:#c5b8ff;overflow:auto;font-size:12px;line-height:1.65;white-space:pre-wrap}
+    .final{max-width:1100px;margin:60px auto 80px;padding:64px 30px;text-align:center;border:1px solid var(--line);border-radius:32px;background:radial-gradient(circle at 50% 0,rgba(139,92,246,.19),transparent 45%),#0c0d12}.final h2{font:700 clamp(38px,6vw,70px)/1 "Space Grotesk";letter-spacing:-.05em;margin:12px auto 22px;max-width:820px}.final p{color:var(--muted);max-width:650px;margin:0 auto 28px;line-height:1.7}
+    footer{max-width:1220px;margin:auto;padding:28px 24px 46px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:18px;color:#737683;font-size:11px}
+    @media(max-width:900px){.hero{grid-template-columns:1fr;padding-top:56px}.hero-copy{text-align:center}.hero p{margin-inline:auto}.actions,.micro{justify-content:center}.cards,.api{grid-template-columns:1fr}.motion-stage{height:520px}.shot.one{left:4%}.shot.two{left:18%;top:170px}.shot.three{right:3%;top:100px}.navlinks .pill:first-child{display:none}}
+    @media(max-width:560px){.nav{padding:0 15px}.brand small{display:none}.navlinks .pill{display:none}.hero{padding-inline:16px;min-height:auto}.hero h1{font-size:52px}.section{padding:74px 16px}.motion{padding:10px}.motion-stage{height:460px}.shot.one{width:190px;height:270px;left:-16px}.shot.two{width:250px;height:160px;left:18%;top:170px}.shot.three{width:180px;height:250px;right:-18px;top:70px}.final{margin:40px 14px 60px}.phone{width:94vw}footer{padding-inline:16px;flex-direction:column}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important}}
   </style>
 </head>
 <body>
-  <nav class="nav"><a class="brand" href="/launch">OWAIS <b>ANIME</b></a><div class="navlinks"><a href="/studio">Studio</a><a href="/app/">Live preview</a><a class="btn primary" href="https://github.com/greenman9909-cmd/owais-anime-stream/releases/download/v6-apk/OWAIS-Anime-v6.apk">Android APK</a></div></nav>
+  <nav class="nav">
+    <a class="brand" href="/launch"><span class="mark"></span><span>OWAIS <small>anime</small></span></a>
+    <div class="navlinks"><a class="pill" href="/app/">Live preview</a><a class="pill" href="https://github.com/greenman9909-cmd/owais-anime-stream">Source</a><a class="cta" href="https://github.com/greenman9909-cmd/owais-anime-stream/releases/download/v7-apk/OWAIS-Anime-v7.apk">Get Android APK</a></div>
+  </nav>
   <main>
     <section class="hero">
-      <div class="hero-copy"><span class="eyebrow">OWAIS Anime · v6.0</span><h1>Anime discovery, <span class="gradient">designed for your thumb.</span></h1><p>A cleaner mobile interface for discovery, episodes, watch progress and the public ani.pm player connection. Test the same mobile UI in your browser before installing the Android build.</p><div class="actions"><a class="btn primary" href="/app/">Open live preview</a><a class="btn" href="https://github.com/greenman9909-cmd/owais-anime-stream">View source</a></div></div>
+      <div class="hero-copy">
+        <span class="eyebrow">OWAIS Anime · v7.0</span>
+        <h1>Your anime app, <span class="gradient">actually wired up.</span></h1>
+        <p>Browse the public ani.pm catalogue, search by title, inspect exact SUB/DUB episode availability, save progress locally and play available episodes through the official ani.pm embed.</p>
+        <div class="actions"><a class="cta" href="/app/">Open live preview</a><a class="pill" href="https://github.com/greenman9909-cmd/owais-anime-stream/releases/tag/v7-apk">Android release</a></div>
+        <div class="micro"><span>Public partner API</span><span>Official embed</span><span>SUB / DUB</span><span>Responsive Android shell</span><span>Supabase config</span></div>
+      </div>
       <div class="phone-wrap"><div class="orb"></div><div class="phone"><iframe title="OWAIS Anime live mobile preview" loading="eager" src="/app/"></iframe></div></div>
     </section>
-    <div class="strip"><div class="ticker"><span>Mobile-first</span><span>AniList catalogue</span><span>Supabase config</span><span>Android APK</span><span>Responsive player</span><span>Local watch history</span><span>Mobile-first</span><span>AniList catalogue</span><span>Supabase config</span><span>Android APK</span><span>Responsive player</span><span>Local watch history</span></div></div>
-    <section class="section"><span class="eyebrow">Built like a product</span><h2>Fast where it matters.</h2><p>The interface keeps the heavy lifting out of the critical path: local history, lean catalogue requests, a compact Android shell and provider logic isolated behind a single adapter.</p><div class="grid"><article class="card"><span class="num">01</span><h3>Shared UI</h3><p>The browser preview and APK use the same interface, so visual changes can be checked without reinstalling the app.</p></article><article class="card"><span class="num">02</span><h3>Provider-safe</h3><p>Playback supports documented or authorized embeds. No private endpoint scraping, stream redistribution or provider watermark removal.</p></article><article class="card"><span class="num">03</span><h3>Cloud config</h3><p>A read-only Supabase config layer can update provider settings and product metadata while the APK stays unchanged.</p></article></div></section>
-    <section class="section demo"><div class="demo-panel"><span class="eyebrow">Playback architecture</span><h2>One adapter, no lock-in.</h2><p>ani.pm is wired as the named public provider target, while the rest of the product stays provider-independent.</p><code>catalog → AniList
-player → configured official embed
-progress → local-first
-config → Supabase + RLS</code></div><div class="demo-panel"><span class="eyebrow">Safety defaults</span><h2>Clean by default.</h2><p>The catalogue query excludes adult titles, and no ad or watermark bypass code is bundled. The app adds its own chrome around provider content without pretending provider video is first-party.</p></div></section>
+    <div class="rail"><div class="rail-inner"><span>ani.pm catalogue</span><span>weekly trends</span><span>latest episodes</span><span>watch progress</span><span>Android APK</span><span>live preview</span><span>ani.pm catalogue</span><span>weekly trends</span><span>latest episodes</span><span>watch progress</span><span>Android APK</span><span>live preview</span></div></div>
+
+    <section class="section">
+      <span class="eyebrow">Product, not a wrapper</span>
+      <h2>One interface for discovery and playback.</h2>
+      <p>The web preview and APK share the same responsive UI. Catalogue data comes from ani.pm's public partner API and playback stays inside ani.pm's official player, so the app never needs private media URLs.</p>
+      <div class="cards">
+        <article class="card"><span class="num">01</span><h3>Real catalogue</h3><p>Weekly top titles, latest episodes, search, series metadata and exact per-episode language availability.</p></article>
+        <article class="card"><span class="num">02</span><h3>Real player</h3><p>Official AniList-id embed links, fullscreen support, SUB/DUB switching and progress events through the documented player protocol.</p></article>
+        <article class="card"><span class="num">03</span><h3>One build loop</h3><p>Test changes in the browser first, then download the APK built by GitHub Actions from the same source.</p></article>
+      </div>
+      <div class="motion">
+        <div class="motion-stage" aria-label="Animated app feature preview">
+          <div class="shot one"><div class="fake-hero"></div><div class="fake-lines"><i></i><i></i><i></i></div></div>
+          <div class="shot two"><div class="fake-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+          <div class="shot three"><div class="fake-hero"></div><div class="fake-lines"><i></i><i></i><i></i></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section api">
+      <article class="api-box"><span class="eyebrow">Catalogue</span><h3>Public partner API</h3><p>The app uses the read-only, keyless API documented by ani.pm and requests adult=0 by default.</p><code>GET /api/partner/v1/top?range=week
+GET /api/partner/v1/titles?q=...
+GET /api/partner/v1/series/{anilistId}
+GET /api/partner/v1/recent</code></article>
+      <article class="api-box"><span class="eyebrow">Playback</span><h3>Official player embed</h3><p>Each episode stays inside the provider's frame. OWAIS only drives documented controls and reads documented progress events.</p><code>https://ani.pm/embed/ani/{anilistId}/{episode}/{sub|dub}
+
+postMessage namespace:
+anipm.player · v1</code></article>
+    </section>
+
+    <section class="final"><span class="eyebrow">Try before installing</span><h2>The browser preview is the app.</h2><p>Open the live mobile interface, test search and episode navigation, then install the same build on Android when you're happy with it.</p><div class="actions" style="justify-content:center"><a class="cta" href="/app/">Launch preview</a><a class="pill" href="https://github.com/greenman9909-cmd/owais-anime-stream/releases/download/v7-apk/OWAIS-Anime-v7.apk">Download APK</a></div></section>
   </main>
-  <footer><span>© 2026 OWAIS Anime</span><span>Anime metadata and provider media belong to their respective owners.</span></footer>
+  <footer><span>© 2026 OWAIS Anime</span><span>Metadata and playback are provided by their respective services. OWAIS does not re-host provider media.</span></footer>
 </body>
 </html>
