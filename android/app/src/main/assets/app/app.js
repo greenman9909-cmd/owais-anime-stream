@@ -681,9 +681,7 @@ function closePlayer() {
   if (state.currentAnime) {
     openDetail(state.currentAnime.anilistId);
   } else {
-    loadCloudConfig().finally(function () {
-  loadHome();
-});
+    loadHome();
   }
 }
 
@@ -948,4 +946,6 @@ api("/api/health")
   })
   .catch(function () {});
 
-loadHome();
+loadCloudConfig().finally(function () {
+  loadHome();
+});
