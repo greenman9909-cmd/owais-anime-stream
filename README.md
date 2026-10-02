@@ -247,3 +247,21 @@ The mobile client is now version 5.0.0. The same UI is exposed as a browser prev
 v5 keeps playback provider-independent. ani.pm is treated as an official/public embed provider only: the app does not scrape private endpoints, remove provider branding, or redistribute stream URLs. Provider configuration is delivered through a read-only Supabase config table so the official embed template can be changed without rebuilding the APK.
 
 Mature titles remain disabled in AniList queries by default.
+
+
+## OWAIS Anime v7
+
+v7 replaces the old local-source playback path with ani.pm's documented public integration:
+
+- Catalogue: `https://ani.pm/api/partner/v1`
+- Search: `/titles?q=...`
+- Series and exact episode availability: `/series/{anilistId}`
+- Latest episodes: `/recent`
+- Weekly/all-time discovery: `/top`
+- Playback: `https://ani.pm/embed/ani/{anilistId}/{episode}/{sub|dub}`
+- Progress/control: documented `anipm.player` v1 postMessage protocol
+
+The Android WebView allows the ani.pm player as a subframe, supports fullscreen and provider-created popover windows, and does not scrape or re-host media URLs. The app requests `adult=0` by default.
+
+Web preview: `/app/`  
+Product landing page: `/launch`
