@@ -62,6 +62,21 @@ async function loadCloudConfig() {
   }
 }
 
+function uiIcon(name, cls) {
+  return '<svg class="' + (cls || '') + '" aria-hidden="true"><use href="#i-' + name + '"></use></svg>';
+}
+
+function expandProviderTemplate(template, animeId, episode, track) {
+  return String(template || '')
+    .replaceAll('{id}', String(animeId))
+    .replaceAll('{anilistId}', String(animeId))
+    .replaceAll('{anilist_id}', String(animeId))
+    .replaceAll('{episode}', String(episode))
+    .replaceAll('{ep}', String(episode))
+    .replaceAll('{track}', String(track || 'sub'))
+    .replaceAll('{lang}', String(track || 'sub'));
+}
+
 function esc(value) {
   return String(value == null ? "" : value)
     .replaceAll("&", "&amp;")
@@ -224,10 +239,10 @@ function toggleSaved(id) {
     ids = ids.filter(function (value) {
       return String(value) !== stringId;
     });
-    showToast("Removed from My List");
+    showToast("Removed from Library");
   } else {
     ids.unshift(Number(id));
-    showToast("Added to My List");
+    showToast("Added to Library");
   }
 
   saveWatchlist(ids.slice(0, 80));
@@ -241,7 +256,7 @@ function renderContinue() {
 
   return (
     '<section class="section">' +
-      '<div class="section-head"><h2>Continue Watching</h2><span>Stored on this device</span></div>' +
+      '<div class="section-head"><h2>Continue Watching</h2><span>Continue where you left off</span></div>' +
       '<div class="card-row">' +
         items.slice(0, 8).map(function (item) {
           const pct = item.duration > 0
@@ -251,7 +266,7 @@ function renderContinue() {
           return (
             '<button class="continue-card" data-action="watch" data-id="' + esc(item.id) + '" data-episode="' + esc(item.episode) + '">' +
               '<div class="continue-thumb" style="background-image:url(&quot;' + esc(item.banner || item.cover || "") + '&quot;)">' +
-                '<span class="continue-play">▶</span>' +
+                '<span class="continue-play">' + uiIcon("logo") + '</span>' +
               '</div>' +
               '<div class="continue-body">' +
                 '<b>' + esc(item.title) + '</b>' +
@@ -270,7 +285,7 @@ async function loadHome() {
   state.view = "home";
   state.currentAnime = null;
   setActiveNav("home");
-  loading("Loading OWAIS v4");
+  loading("Loading OWAIS");
 
   try {
     const result = await Promise.all([
@@ -487,7 +502,7 @@ async function openDetail(id) {
             '<div class="tag-row">' + tags + '</div>' +
           '</div>' +
           '<div class="series-actions">' +
-            '<button class="watch-now wide" data-action="watch" data-id="' + esc(anime.anilistId) + '" data-episode="1">▶ START WATCHING</button>' +
+            '<button class="watch-now wide" data-action="watch" data-id="' + esc(anime.anilistId) + '" data-episode="1">▶ Play episode 1</button>' +
             '<button class="secondary-square" data-action="toggle-save" data-id="' + esc(anime.anilistId) + '">' + (isSaved(anime.anilistId) ? "♥" : "＋") + '</button>' +
           '</div>' +
           '<p class="series-synopsis">' + esc(anime.synopsis || "No synopsis available.") + '</p>' +
@@ -572,7 +587,21 @@ async function openPlayer(id, episode) {
   });
 
   try {
-    const play = await api(
+    const cloudTemplate = state.cloudConfig.ani_pm_embed_template || state.cloudConfig.provider_embed_template || "";
+    const cloudMode = state.cloudConfig.provider_mode === "direct" ? "direct" : "embed";
+    const cloudPlay = cloudTemplate ? {
+      available: true,
+      mode: cloudMode,
+      url: expandProviderTemplate(
+        cloudTemplate,
+        anime.anilistId,
+        episode,
+        state.currentTrack
+      ),
+      source: state.cloudConfig.provider_name || "ani.pm"
+    } : null;
+
+    const play = cloudPlay || await api(
       "/api/play/" +
       encodeURIComponent(anime.anilistId) +
       "/" +
@@ -634,12 +663,12 @@ async function openPlayer(id, episode) {
 
     playerUnavailable.classList.remove("hidden");
     playerUnavailableText.textContent =
-      "No playable source was returned for this episode. The app only uses configured/official provider embeds; private endpoints are not scraped.";
+      "The configured player did not return this episode. Try another track or episode.";
   } catch (error) {
     playerLoading.classList.add("hidden");
     playerUnavailable.classList.remove("hidden");
     playerUnavailableText.textContent =
-      "Local playback lookup failed: " + error.message;
+      "The player connection failed. " + (error && error.message ? error.message : "Please try again.");
   }
 }
 
@@ -667,15 +696,14 @@ function loadLibrary() {
 
   view.innerHTML =
     '<section class="library-page">' +
-      '<span class="eyebrow">ONLY ON THIS DEVICE</span>' +
-      '<h1 class="page-title">My List</h1>' +
+      '<span class="eyebrow">Your library</span>' +
+      '<h1 class="page-title">Library</h1>' +
       '<div class="library-actions">' +
-        '<button data-action="source-settings">Playback source</button>' +
-        '<button data-action="clear-history">Clear Continue Watching</button>' +
+        '<button data-action="clear-history">Clear watch progress</button>' +
       '</div>' +
       '<div id="libraryContent">' +
         (ids.length
-          ? '<div class="loading-screen"><div class="spinner"></div><b>Loading My List</b></div>'
+          ? '<div class="loading-screen"><div class="spinner"></div><b>Loading Library</b></div>'
           : '<div class="empty-screen"><b>Your list is empty</b><p>Save anime from any details page. Nothing is stored on a remote account.</p></div>') +
       '</div>' +
     '</section>';
@@ -735,7 +763,7 @@ async function saveSourceSettings() {
       body: JSON.stringify(payload)
     });
 
-    showToast("Local source saved");
+    showToast("Player connection saved");
     closeSourceSettings();
 
     if (!playerScreen.classList.contains("hidden") && state.currentAnime) {
@@ -761,7 +789,7 @@ async function clearSourceSettings() {
       })
     });
 
-    showToast("Local source cleared");
+    showToast("Player connection reset");
     closeSourceSettings();
   } catch (error) {
     showToast(error.message || "Could not clear source");
@@ -812,8 +840,8 @@ document.addEventListener("click", function (event) {
   } else if (action === "toggle-save") {
     toggleSaved(button.dataset.id);
     button.textContent = isSaved(button.dataset.id)
-      ? "♥ In My List"
-      : "♡ My List";
+      ? "♥ In Library"
+      : "♡ Library";
   } else if (action === "set-track") {
     state.currentTrack = button.dataset.track || "sub";
     if (state.currentAnime) {
@@ -914,7 +942,7 @@ api("/api/health")
     localAddress.textContent = API_BASE;
     if (!health.providerConfigured) {
       setTimeout(function () {
-        showToast("Local backend ready");
+        showToast("Ready");
       }, 500);
     }
   })
