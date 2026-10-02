@@ -39,11 +39,11 @@ jobs:
       - name: Check bundled app JavaScript
         run: node --check android/app/src/main/assets/app/app.js
 
-      - name: Verify v6 UI marker
+      - name: Verify v7 UI marker
         run: |
           grep -q "OWAIS Anime" android/app/src/main/assets/app/index.html
-          grep -q "Browse anime" android/app/src/main/assets/app/app.js
-          grep -q "Popular This Week" android/app/src/main/assets/app/app.js
+          grep -q "ANI_API_DEFAULT" android/app/src/main/assets/app/app.js
+          grep -q "https://ani.pm/embed/ani" android/app/src/main/assets/app/app.js
 
       - name: SlopMonster regression tests
         run: python3 third_party/slopmonster/test_deslop.py
@@ -60,28 +60,28 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin main
           git reset --hard origin/main
-          cp android/app/build/outputs/apk/debug/app-debug.apk OWAIS-Anime-v6.apk
-          git add OWAIS-Anime-v6.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk OWAIS-Anime-v7.apk
+          git add OWAIS-Anime-v7.apk
           if git diff --cached --quiet; then
             echo "APK unchanged"
           else
-            git commit -m "build: publish OWAIS Anime v6 APK"
+            git commit -m "build: publish OWAIS Anime v7 APK"
             git push origin main
           fi
 
-      - name: Publish OWAIS Anime v6 release
+      - name: Publish OWAIS Anime v7 release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view v6-apk >/dev/null 2>&1; then
-            gh release upload v6-apk OWAIS-Anime-v6.apk --clobber
+          if gh release view v7-apk >/dev/null 2>&1; then
+            gh release upload v7-apk OWAIS-Anime-v7.apk --clobber
           else
-            gh release create v6-apk OWAIS-Anime-v6.apk               --title "OWAIS Anime v6 Android"               --notes "OWAIS Anime v6.0.0 — redesigned Android UI with native Media3 playback and on-device localhost backend."
+            gh release create v7-apk OWAIS-Anime-v7.apk               --title "OWAIS Anime v7 Android"               --notes "OWAIS Anime v7.0.0 — public ani.pm catalogue API, official embed playback, redesigned responsive UI, and local watch progress."
           fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OWAIS-Anime-v6-Android
+          name: OWAIS-Anime-v7-Android
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
