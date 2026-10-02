@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 from fastapi import FastAPI, HTTPException, Header, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from reanime import anilist, shield
@@ -117,6 +117,26 @@ async def serve_product_landing():
     if not landing_file.exists():
         raise HTTPException(status_code=404, detail="Landing page not found")
     return FileResponse(str(landing_file))
+
+
+@app.get("/robots.txt", include_in_schema=False)
+async def robots_txt():
+    return PlainTextResponse(
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Sitemap: https://owais-anime-stream-open.onrender.com/sitemap.xml\n"
+    )
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap_xml():
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://owais-anime-stream-open.onrender.com/launch</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://owais-anime-stream-open.onrender.com/app/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://owais-anime-stream-open.onrender.com/docs</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+</urlset>"""
+    return Response(content=xml, media_type="application/xml")
 
 
 @app.get("/favicon.ico", include_in_schema=False)
