@@ -32,3 +32,6 @@ svg{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-l
 .library-actions{display:flex;gap:8px;margin:0 0 16px}.library-actions button{border:1px solid var(--line);background:var(--surface);color:#aaa;border-radius:10px;padding:9px 11px;font-size:9.5px}
 @media(max-width:380px){.v4-hero{height:520px}.v4-hero h1{font-size:34px}.anime-card{width:136px;flex-basis:136px}.poster-wrap{width:136px;height:193px}.episode-row{grid-template-columns:26px 82px 1fr 14px}}
 @media(min-width:700px){body{max-width:760px;margin:0 auto;border-inline:1px solid var(--line)}.bottom-nav{max-width:720px;margin:0 auto;left:20px;right:20px}.sheet{max-width:720px;margin:0 auto}}
+@media(min-width:700px){
+  .player-screen{max-width:760px;left:50%;right:auto;width:100%;transform:translateX(-50%);border-inline:1px solid var(--line)}
+}
