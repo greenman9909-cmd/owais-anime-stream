@@ -6,10 +6,12 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
+import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -123,6 +125,8 @@ public class MainActivity extends Activity {
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
+        settings.setJavaScriptCanOpenWindowsAutomatically(true);
+        settings.setSupportMultipleWindows(true);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
         settings.setSupportZoom(false);
@@ -133,8 +137,14 @@ public class MainActivity extends Activity {
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
         settings.setUserAgentString(
-            settings.getUserAgentString() + " OwaisAnimeAndroid/3.0"
+            settings.getUserAgentString() + " OwaisAnimeAndroid/7.0"
         );
+
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.setAcceptCookie(true);
+        if (android.os.Build.VERSION.SDK_INT >= 21) {
+            cookieManager.setAcceptThirdPartyCookies(webView, true);
+        }
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -151,6 +161,10 @@ public class MainActivity extends Activity {
                 }
 
                 if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
+                    if (!request.isForMainFrame()) {
+                        return false;
+                    }
+
                     if (
                         uri.getHost() != null
                             && (
@@ -190,6 +204,50 @@ public class MainActivity extends Activity {
                 progressBar.setVisibility(
                     newProgress >= 100 ? View.GONE : View.VISIBLE
                 );
+            }
+
+            @Override
+            public boolean onCreateWindow(
+                WebView view,
+                boolean isDialog,
+                boolean isUserGesture,
+                Message resultMsg
+            ) {
+                WebView popup = new WebView(MainActivity.this);
+                popup.getSettings().setJavaScriptEnabled(true);
+                popup.setWebViewClient(new WebViewClient() {
+                    @Override
+                    public boolean shouldOverrideUrlLoading(
+                        WebView popupView,
+                        WebResourceRequest request
+                    ) {
+                        Uri uri = request.getUrl();
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                        } catch (Exception ex) {
+                            Toast.makeText(
+                                MainActivity.this,
+                                "Could not open external link.",
+                                Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                        popupView.destroy();
+                        return true;
+                    }
+                });
+
+                WebView.WebViewTransport transport =
+                    (WebView.WebViewTransport) resultMsg.obj;
+                transport.setWebView(popup);
+                resultMsg.sendToTarget();
+                return true;
+            }
+
+            @Override
+            public void onCloseWindow(WebView window) {
+                if (window != null) {
+                    window.destroy();
+                }
             }
 
             @Override
