@@ -195,6 +195,11 @@ public class LocalAnimeBackend {
             return;
         }
 
+        if ("GET".equals(method) && "/config.js".equals(path)) {
+            sendAsset(output, "app/config.js", "application/javascript; charset=utf-8");
+            return;
+        }
+
         if ("GET".equals(method) && "/api/health".equals(path)) {
             JSONObject data = new JSONObject();
             data.put("status", "ok");

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>OWAIS Anime v5 — mobile-first anime app</title>
+  <meta name="description" content="Preview OWAIS Anime v5 in your browser and download the Android build. Fast anime discovery, local watch history, responsive playback UI and provider-ready embeds.">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta property="og:title" content="OWAIS Anime v5">
+  <meta property="og:description" content="A polished mobile-first anime catalogue and player shell with a live browser preview.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#070707">
+  <link rel="canonical" href="https://owais-anime-stream-open.onrender.com/launch">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"OWAIS Anime","applicationCategory":"EntertainmentApplication","operatingSystem":"Android, Web","softwareVersion":"5.0.0"}</script>
+  <style>
+    :root{--bg:#060607;--panel:#101014;--text:#f7f7f8;--muted:#9b9ba4;--line:rgba(255,255,255,.09);--accent:#f47521;--glow:#8b5cf6}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 80% 0,rgba(139,92,246,.18),transparent 34%),radial-gradient(circle at 10% 20%,rgba(244,117,33,.13),transparent 28%),var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}
+    a{color:inherit;text-decoration:none}.nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;max-width:1180px;margin:auto;padding:18px 22px;background:rgba(6,6,7,.72);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+    .brand{font:800 16px/1 "Space Grotesk",sans-serif;letter-spacing:.12em}.brand b{color:var(--accent)}.navlinks{display:flex;gap:9px}.navlinks a,.btn{border:1px solid var(--line);padding:11px 15px;border-radius:999px;font-size:13px;font-weight:700}.btn.primary{background:var(--accent);color:#101010;border-color:var(--accent)}
+    .hero{max-width:1180px;margin:auto;display:grid;grid-template-columns:1.04fr .96fr;gap:58px;align-items:center;padding:86px 22px 72px;min-height:82vh}.eyebrow{font:800 11px/1 "Space Grotesk";letter-spacing:.18em;color:#ffb37c;text-transform:uppercase}.hero h1{font:700 clamp(50px,8vw,96px)/.91 "Space Grotesk";letter-spacing:-.065em;margin:18px 0 24px;max-width:760px}.gradient{background:linear-gradient(110deg,#fff 15%,#ffb37c 48%,#b9a4ff 82%);-webkit-background-clip:text;color:transparent}.hero p{max-width:610px;color:#b4b4bc;font-size:17px;line-height:1.7}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px}
+    .phone-wrap{position:relative;display:grid;place-items:center}.orb{position:absolute;width:78%;aspect-ratio:1;border-radius:50%;filter:blur(44px);background:linear-gradient(135deg,rgba(244,117,33,.28),rgba(139,92,246,.32))}.phone{position:relative;width:min(390px,86vw);aspect-ratio:9/19.2;border-radius:46px;padding:10px;background:linear-gradient(145deg,#37373b,#101014 50%,#27272b);box-shadow:0 40px 100px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.1) inset}.phone:before{content:"";position:absolute;z-index:4;top:18px;left:50%;transform:translateX(-50%);width:31%;height:25px;border-radius:99px;background:#050506}.phone iframe{width:100%;height:100%;border:0;border-radius:38px;background:#080809}
+    .strip{border-block:1px solid var(--line);background:rgba(255,255,255,.025);overflow:hidden}.ticker{display:flex;gap:44px;width:max-content;padding:16px 0;animation:ticker 24s linear infinite;color:#7f7f88;font:700 12px "Space Grotesk";letter-spacing:.12em;text-transform:uppercase}@keyframes ticker{to{transform:translateX(-50%)}}.ticker span:before{content:"✦";color:var(--accent);margin-right:44px}
+    .section{max-width:1180px;margin:auto;padding:92px 22px}.section h2{font:700 clamp(34px,5vw,64px)/1 "Space Grotesk";letter-spacing:-.045em;margin:12px 0 16px}.section>p{color:var(--muted);max-width:680px;line-height:1.7}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:38px}.card{min-height:230px;padding:26px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.018));position:relative;overflow:hidden}.card:after{content:"";position:absolute;right:-45px;bottom:-60px;width:150px;height:150px;border-radius:50%;background:rgba(139,92,246,.12);filter:blur(18px)}.num{font:700 12px "Space Grotesk";color:#ffb37c}.card h3{font:700 24px "Space Grotesk";margin:52px 0 10px}.card p{color:#93939b;line-height:1.6;font-size:14px}
+    .demo{display:grid;grid-template-columns:1fr 1fr;gap:18px}.demo-panel{padding:34px;border:1px solid var(--line);border-radius:28px;background:#0b0b0e}.demo-panel code{display:block;color:#b8a7ff;background:#070709;border:1px solid var(--line);padding:18px;border-radius:16px;overflow:auto;margin-top:20px}
+    footer{max-width:1180px;margin:50px auto 0;padding:30px 22px 50px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;color:#75757d;font-size:12px}
+    @media(max-width:860px){.hero{grid-template-columns:1fr;padding-top:58px}.hero-copy{text-align:center}.hero p{margin-inline:auto}.actions{justify-content:center}.grid,.demo{grid-template-columns:1fr}.navlinks a:first-child{display:none}.phone{width:min(390px,92vw)}.section{padding-top:72px}}
+  </style>
+</head>
+<body>
+  <nav class="nav"><a class="brand" href="/launch">OWAIS <b>ANIME</b></a><div class="navlinks"><a href="/studio">Studio</a><a href="/app/">Live preview</a><a class="btn primary" href="https://github.com/greenman9909-cmd/owais-anime-stream/releases/download/v5-apk/OWAIS-Anime-v5.apk">Android APK</a></div></nav>
+  <main>
+    <section class="hero">
+      <div class="hero-copy"><span class="eyebrow">OWAIS Anime · v5.0</span><h1>Anime discovery, <span class="gradient">designed for your thumb.</span></h1><p>One fast interface for discovery, episodes, watch history and provider-ready playback. Test the same mobile UI in your browser before installing the Android build.</p><div class="actions"><a class="btn primary" href="/app/">Open live preview</a><a class="btn" href="https://github.com/greenman9909-cmd/owais-anime-stream">View source</a></div></div>
+      <div class="phone-wrap"><div class="orb"></div><div class="phone"><iframe title="OWAIS Anime live mobile preview" loading="eager" src="/app/"></iframe></div></div>
+    </section>
+    <div class="strip"><div class="ticker"><span>Mobile-first</span><span>AniList catalogue</span><span>Supabase config</span><span>Android APK</span><span>Responsive player</span><span>Local watch history</span><span>Mobile-first</span><span>AniList catalogue</span><span>Supabase config</span><span>Android APK</span><span>Responsive player</span><span>Local watch history</span></div></div>
+    <section class="section"><span class="eyebrow">Built like a product</span><h2>Fast where it matters.</h2><p>The interface keeps the heavy lifting out of the critical path: local history, lean catalogue requests, a compact Android shell and provider logic isolated behind a single adapter.</p><div class="grid"><article class="card"><span class="num">01</span><h3>Shared UI</h3><p>The browser preview and APK use the same interface, so visual changes can be checked without reinstalling the app.</p></article><article class="card"><span class="num">02</span><h3>Provider-safe</h3><p>Playback supports documented or authorized embeds. No private endpoint scraping, stream redistribution or provider watermark removal.</p></article><article class="card"><span class="num">03</span><h3>Cloud config</h3><p>A read-only Supabase config layer can update provider settings and product metadata while the APK stays unchanged.</p></article></div></section>
+    <section class="section demo"><div class="demo-panel"><span class="eyebrow">Playback architecture</span><h2>One adapter, no lock-in.</h2><p>ani.pm is wired as the named public provider target, while the rest of the product stays provider-independent.</p><code>catalog → AniList
+player → configured official embed
+progress → local-first
+config → Supabase + RLS</code></div><div class="demo-panel"><span class="eyebrow">Safety defaults</span><h2>Clean by default.</h2><p>The catalogue query excludes adult titles, and no ad or watermark bypass code is bundled. The app adds its own chrome around provider content without pretending provider video is first-party.</p></div></section>
+  </main>
+  <footer><span>© 2026 OWAIS Anime</span><span>Anime metadata and provider media belong to their respective owners.</span></footer>
+</body>
+</html>

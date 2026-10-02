@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -26,22 +26,22 @@ jobs:
           python-version: "3.11"
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           gradle-version: "8.9"
 
       - name: Check bundled app JavaScript
         run: node --check android/app/src/main/assets/app/app.js
 
-      - name: Verify v4 UI marker
+      - name: Verify v5 UI marker
         run: |
-          grep -q "v4.0" android/app/src/main/assets/app/index.html
+          grep -q "v5.0" android/app/src/main/assets/app/index.html
           grep -q "Browse anime" android/app/src/main/assets/app/app.js
           grep -q "Popular This Week" android/app/src/main/assets/app/app.js
 
@@ -60,28 +60,28 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin main
           git reset --hard origin/main
-          cp android/app/build/outputs/apk/debug/app-debug.apk OWAIS-Anime-v4.apk
-          git add OWAIS-Anime-v4.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk OWAIS-Anime-v5.apk
+          git add OWAIS-Anime-v5.apk
           if git diff --cached --quiet; then
             echo "APK unchanged"
           else
-            git commit -m "build: publish OWAIS Anime v4 APK"
+            git commit -m "build: publish OWAIS Anime v5 APK"
             git push origin main
           fi
 
-      - name: Publish OWAIS Anime v4 release
+      - name: Publish OWAIS Anime v5 release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view v4-apk >/dev/null 2>&1; then
-            gh release upload v4-apk OWAIS-Anime-v4.apk --clobber
+          if gh release view v5-apk >/dev/null 2>&1; then
+            gh release upload v5-apk OWAIS-Anime-v5.apk --clobber
           else
-            gh release create v4-apk OWAIS-Anime-v4.apk               --title "OWAIS Anime v4 Android"               --notes "OWAIS Anime v4.0.0 — redesigned Android UI with native Media3 playback and on-device localhost backend."
+            gh release create v5-apk OWAIS-Anime-v5.apk               --title "OWAIS Anime v5 Android"               --notes "OWAIS Anime v5.0.0 — redesigned Android UI with native Media3 playback and on-device localhost backend."
           fi
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
-          name: OWAIS-Anime-v4-Android
+          name: OWAIS-Anime-v5-Android
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error

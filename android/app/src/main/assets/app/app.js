@@ -26,8 +26,41 @@ const state = {
   searchTimer: null,
   browseSort: "popular",
   officialUrl: "",
-  playerMode: ""
+  playerMode: "",
+  cloudConfig: {}
 };
+
+const CLOUD_BOOT = window.OWAIS_CLOUD || {};
+
+async function loadCloudConfig() {
+  if (!CLOUD_BOOT.supabaseUrl || !CLOUD_BOOT.supabasePublishableKey) {
+    return {};
+  }
+
+  try {
+    const response = await fetch(
+      CLOUD_BOOT.supabaseUrl + "/rest/v1/yoru_app_config?select=key,value",
+      {
+        headers: {
+          apikey: CLOUD_BOOT.supabasePublishableKey,
+          Accept: "application/json"
+        }
+      }
+    );
+
+    if (!response.ok) return {};
+
+    const rows = await response.json();
+    state.cloudConfig = Object.fromEntries(
+      (Array.isArray(rows) ? rows : []).map(function (row) {
+        return [row.key, row.value];
+      })
+    );
+    return state.cloudConfig;
+  } catch (_) {
+    return {};
+  }
+}
 
 function esc(value) {
   return String(value == null ? "" : value)
@@ -601,7 +634,7 @@ async function openPlayer(id, episode) {
 
     playerUnavailable.classList.remove("hidden");
     playerUnavailableText.textContent =
-      "No playable source was returned for this episode. Try another episode or check back later.";
+      "No playable source was returned for this episode. The app only uses configured/official provider embeds; private endpoints are not scraped.";
   } catch (error) {
     playerLoading.classList.add("hidden");
     playerUnavailable.classList.remove("hidden");
@@ -619,7 +652,9 @@ function closePlayer() {
   if (state.currentAnime) {
     openDetail(state.currentAnime.anilistId);
   } else {
-    loadHome();
+    loadCloudConfig().finally(function () {
+  loadHome();
+});
   }
 }
 
@@ -670,9 +705,10 @@ function loadLibrary() {
 async function openSourceSettings() {
   try {
     const data = await api("/api/provider");
+    await loadCloudConfig();
     providerMode.value = data.mode || "embed";
-    subTemplate.value = data.subTemplate || "";
-    dubTemplate.value = data.dubTemplate || "";
+    subTemplate.value = data.subTemplate || state.cloudConfig.ani_pm_embed_template || "";
+    dubTemplate.value = data.dubTemplate || state.cloudConfig.ani_pm_embed_template || "";
     localAddress.textContent = API_BASE;
   } catch (_) {
     localAddress.textContent = API_BASE;

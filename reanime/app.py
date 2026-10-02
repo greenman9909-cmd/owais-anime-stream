@@ -25,6 +25,7 @@ logger = logging.getLogger("reanime.app")
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
+MOBILE_ASSETS_DIR = BASE_DIR.parent / "android" / "app" / "src" / "main" / "assets" / "app"
 START_TIME = time.time()
 
 app = FastAPI(
@@ -38,6 +39,9 @@ app = FastAPI(
 # Static files mount
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+if MOBILE_ASSETS_DIR.exists():
+    app.mount("/app", StaticFiles(directory=str(MOBILE_ASSETS_DIR), html=True), name="mobile_app")
 
 # CORS configuration - Allow all origins for /embed/* and /api/*
 app.add_middleware(
@@ -83,6 +87,11 @@ async def general_exception_handler(request: Request, exc: Exception):
 # --------------------------------------------------------------------------
 # Studio & Embed Web Routes
 # --------------------------------------------------------------------------
+@app.get("/studio", tags=["Studio"])
+async def serve_studio_alias(authorization: Optional[str] = Header(None)):
+    return await serve_studio(authorization)
+
+
 @app.get("/", tags=["Studio"])
 async def serve_studio(authorization: Optional[str] = Header(None)):
     """Studio Console landing page. Protected by STUDIO_TOKEN if configured."""
@@ -99,6 +108,15 @@ async def serve_studio(authorization: Optional[str] = Header(None)):
     if not index_file.exists():
         raise HTTPException(status_code=404, detail="Studio template not found")
     return FileResponse(str(index_file))
+
+
+@app.get("/launch", tags=["Product"])
+async def serve_product_landing():
+    """SEO-friendly product landing page with a live mobile preview."""
+    landing_file = TEMPLATES_DIR / "landing.html"
+    if not landing_file.exists():
+        raise HTTPException(status_code=404, detail="Landing page not found")
+    return FileResponse(str(landing_file))
 
 
 @app.get("/favicon.ico", include_in_schema=False)

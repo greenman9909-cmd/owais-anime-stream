@@ -238,3 +238,12 @@ If AnimeXOsource_Owais helps you build or learn, optional support is available t
 ## License
 
 Released under the [MIT License](LICENSE). Copyright (c) 2026 AnimeXOsource_Owais contributors.
+
+
+## OWAIS Anime v5
+
+The mobile client is now version 5.0.0. The same UI is exposed as a browser preview at `/app/`, while `/launch` provides the product landing page.
+
+v5 keeps playback provider-independent. ani.pm is treated as an official/public embed provider only: the app does not scrape private endpoints, remove provider branding, or redistribute stream URLs. Provider configuration is delivered through a read-only Supabase config table so the official embed template can be changed without rebuilding the APK.
+
+Mature titles remain disabled in AniList queries by default.
