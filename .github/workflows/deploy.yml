@@ -1,18 +1,13 @@
-name: Deploy to Render
+name: Render deployment info
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  info:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Deploy to Render
-        uses: render-examples/deploy-to-render@v1
-        with:
-          service-id: ${{ secrets.RENDER_SERVICE_ID }}
-          api-key: ${{ secrets.RENDER_API_KEY }}
+      - name: Explain deployment path
+        run: |
+          echo "Render auto-deploy is enabled for owais-anime-stream-open."
+          echo "Pushes to main are deployed directly by Render; no GitHub secret-based deploy hook is required."
