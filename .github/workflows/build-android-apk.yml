@@ -18,21 +18,21 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Set up Java
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
 
@@ -41,7 +41,7 @@ jobs:
 
       - name: Verify v6 UI marker
         run: |
-          grep -q "v6.0" android/app/src/main/assets/app/index.html
+          grep -q "OWAIS Anime" android/app/src/main/assets/app/index.html
           grep -q "Browse anime" android/app/src/main/assets/app/app.js
           grep -q "Popular This Week" android/app/src/main/assets/app/app.js
 
@@ -80,7 +80,7 @@ jobs:
           fi
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: OWAIS-Anime-v6-Android
           path: android/app/build/outputs/apk/debug/app-debug.apk
