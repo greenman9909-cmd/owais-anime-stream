@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark">
   <meta name="description" content="OWAIS Anime — a clean mobile-first anime discovery and playback app.">
   <title>OWAIS Anime</title>
-  <meta name="app-version" content="6.0.0">
+  <meta name="app-version" content="7.0.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -61,11 +61,11 @@
 
     <div class="player-stage">
       <video id="localVideo" class="local-video hidden" controls playsinline></video>
-      <iframe id="playerFrame" class="player-frame hidden" title="OWAIS Anime player" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+      <iframe id="playerFrame" class="player-frame hidden" title="OWAIS Anime player" allow="autoplay; fullscreen; picture-in-picture; encrypted-media; screen-wake-lock" allowfullscreen></iframe>
       <div id="playerLoading" class="player-state">
         <div class="spinner"></div>
         <b>Loading episode</b>
-        <span>Connecting to the configured player.</span>
+        <span>Connecting to ani.pm.</span>
       </div>
       <div id="playerUnavailable" class="player-state hidden">
         <div class="state-icon"><svg><use href="#i-external"></use></svg></div>
